@@ -9,6 +9,8 @@ import ButtonLink from '@/components/links/ButtonLink';
 import UnderlineLink from '@/components/links/UnderlineLink';
 import UnstyledLink from '@/components/links/UnstyledLink';
 
+import { SignIn } from '@/app/components/sign-in';
+
 /**
  * SVGR Support
  * Caveat: No React Props Type.
@@ -23,6 +25,11 @@ import Logo from '~/svg/Logo.svg';
 // to customize the default configuration.
 
 export default function HomePage() {
+
+
+
+
+
   return (
     <main>
       <Head>
@@ -41,6 +48,8 @@ export default function HomePage() {
               See the repository
             </ArrowLink>
           </p>
+
+          <SignIn />
 
           <ButtonLink className='mt-6' href='/components' variant='light'>
             See all components
