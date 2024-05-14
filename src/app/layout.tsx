@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { SessionProvider } from "next-auth/react"
 import * as React from 'react';
 
 import '@/styles/globals.css';
@@ -56,7 +57,11 @@ export default function RootLayout({
 }) {
   return (
     <html>
-      <body>{children}</body>
+      <body>
+        <SessionProvider>
+          {children}
+        </SessionProvider>
+      </body>
     </html>
   );
 }
