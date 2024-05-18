@@ -1,9 +1,9 @@
-'use server'
+'use server';
 
-import { signIn } from "@/auth"
+import { signIn } from '@/auth';
 
-export const signInGoogle = async () => {
-  await signIn("google", undefined, {
-    nonce: "test de fou"
-  })
-}
+export const signInGoogle = async (nonce: string) => {
+  await signIn('google', undefined, {
+    nonce,
+  });
+};
