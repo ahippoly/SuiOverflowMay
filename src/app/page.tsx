@@ -40,9 +40,9 @@ export default function HomePage() {
           <h1>zkLoginInfo</h1>
           {
           Object.keys(zkLogin).map((key) => {
-            if (typeof zkLogin[key] === 'function')
+            if (typeof zkLogin[key as keyof ZkLoginInfo] === 'function')
               return null
-            return <p key={key}>{key} : {zkLogin[key]}</p>
+            return <p key={key}>{key} : {zkLogin[key as keyof ZkLoginInfo]}</p>
           })}
           {/* <p> restoredKey : {restoredKey.getPublicKey().toBase64()}</p> */}
 
