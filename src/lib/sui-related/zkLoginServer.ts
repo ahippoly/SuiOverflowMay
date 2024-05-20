@@ -1,30 +1,24 @@
-import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
-import { generateNonce } from '@mysten/zklogin';
+'use server';
 
 import { getCurrentEpoch } from '@/lib/sui-related/utils';
 
-export const generateZkLoginNonce = async (
-  randomness: string,
-  ephemeralKeyPair: Ed25519Keypair
-) => {
-  const epochInfo = await getCurrentEpoch();
+export const generateUserSalt = async (): Promise<string> => {
+  // generate a number between 0 and 2n**128n
 
-  const maxEpoch = Number(epochInfo.epoch) + 2; // this means the ephemeral key will be active for 2 epochs from now.
-  const nonce = generateNonce(
-    ephemeralKeyPair.getPublicKey(),
-    maxEpoch,
-    randomness
-  );
+  const n = BigInt(2);
+  const exponent = BigInt(128);
+  const maxNumber = n ** exponent;
 
-  return nonce;
+  const randomNumber = BigInt(Math.floor(Math.random() * Number(maxNumber)));
+
+  return randomNumber.toString();
 };
 
-export const generateZkProofClient = async (
+export const generateZkProof = async (
   jwt: string,
   extendedEphemeralPublicKey: string,
   salt: string,
-  randomness: string,
-  maxEpoch: string
+  randomness: string
 ) => {
   const proverEndpoint = 'https://prover-dev.mystenlabs.com/v1';
 
@@ -35,6 +29,7 @@ export const generateZkProofClient = async (
     'base64'
   );
   const epochInfo = await getCurrentEpoch();
+  const maxEpoch = Number(epochInfo.epoch) + 2; // this means the ephemeral key will be active for 2 epochs from now.
 
   const payload = JSON.stringify({
     jwt,

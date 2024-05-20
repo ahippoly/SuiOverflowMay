@@ -37,8 +37,13 @@ export default function HomePage() {
             Import, Seo, Link component, pre-configured with Husky{' '}
           </p>
 
-          <p> privateKey : {zkLogin.ephemeralKeyPair.secretKey} </p>
-          <p> publicKey : {zkLogin.ephemeralKeyPair.publicKey}</p>
+          <h1>zkLoginInfo</h1>
+          {
+          Object.keys(zkLogin).map((key) => {
+            if (typeof zkLogin[key] === 'function')
+              return null
+            return <p key={key}>{key} : {zkLogin[key]}</p>
+          })}
           {/* <p> restoredKey : {restoredKey.getPublicKey().toBase64()}</p> */}
 
           <button onClick={zkLogin.prepareZkLogin}>Prepare zkLogin</button>

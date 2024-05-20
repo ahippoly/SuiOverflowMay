@@ -6,20 +6,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
-      checks: ['nonce'],
+      token: {
+        maxAge: 60 * 60, // 1 hour
+        async request(context: any) {
+          console.log('🚀 ~ request ~ context:', context);
+        },
+      },
       authorization: {
         params: {
-          scope: 'openid',
-          nonce: 'test de fou',
           // response_type: 'id_token',
-          codeChallengeMethod: '',
         },
       },
     }),
   ],
-  session: {
-    strategy: 'jwt',
-  },
   callbacks: {
     async signIn({ account, profile }) {
       // console.log("🚀 ~ signIn ~ profile:", profile)
