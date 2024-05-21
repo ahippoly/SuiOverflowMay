@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { createTheme, CssBaseline, ThemeProvider, useMediaQuery } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
 
 import '@/styles/globals.css';
 // !STARTERCONF This is for demo purposes, remove @/styles/colors.css import immediately
@@ -65,6 +66,17 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: prefersDarkMode ? 'dark' : 'light',
+        },
+      }),
+    [prefersDarkMode],
+  );
 
   const [zkLoginInfo, setZkLoginInfo] = useState<ZkLoginInfo>(JSON.parse(
     window?.sessionStorage.getItem('zkLoginInfo') ||
@@ -78,12 +90,15 @@ export default function RootLayout({
   return (
     <html>
       <body>
-        <ZkLoginInfoContext.Provider value={{
-          zkLoginInfo: zkLoginInfo,
-          setZkLoginInfo: setZkLoginInfo
-        }}>
-          {children}
-        </ZkLoginInfoContext.Provider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <ZkLoginInfoContext.Provider value={{
+            zkLoginInfo: zkLoginInfo,
+            setZkLoginInfo: setZkLoginInfo
+          }}>
+            {children}
+          </ZkLoginInfoContext.Provider>
+        </ThemeProvider>
       </body>
     </html>
   );
