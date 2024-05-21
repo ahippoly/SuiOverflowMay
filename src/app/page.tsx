@@ -32,10 +32,9 @@ export default function HomePage() {
         }}
       >
         <MainContainer>
-          <Typography variant="h1" align="center" sx={{ color: 'white' }}>Sui Safe</Typography>
-          <Typography variant="h2" align="center" sx={{ color: 'white' }}>Welcome to Sui Safe</Typography>
-          <Typography variant="h3" align="center" sx={{ color: 'white' }}>The most secure ZkLogin Wallet leveraging native Sui multisig</Typography>
-
+          <Typography variant="h1" align="center">Sui Safe</Typography>
+          <Typography variant="h2" align="center">Welcome to Sui Safe</Typography>
+          <Typography variant="h3" align="center">The most secure ZkLogin Wallet leveraging native Sui multisig</Typography>
         </MainContainer>
       </Box>
   );
