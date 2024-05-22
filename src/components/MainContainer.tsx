@@ -1,12 +1,16 @@
-import { Container, Paper, Stack } from "@mui/material";
+import { Container, Paper } from "@mui/material";
 
 function MainContainer({ children } : { children: React.ReactNode }) {
   return ( 
-  <Container maxWidth="xs">
-    <Paper elevation={8}>
-      <Stack spacing={2}>
+  <Container maxWidth="xs"
+    
+  >
+    <Paper elevation={8}
+    sx={{
+      p: 4,
+      height: '500px',
+    }}>
         {children}
-      </Stack>
     </Paper>
   </Container> );
 }

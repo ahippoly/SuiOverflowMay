@@ -66,7 +66,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)') && false;
 
   const theme = useMemo(
     () =>

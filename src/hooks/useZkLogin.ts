@@ -64,6 +64,8 @@ export const useZkLogin = () => {
     return { zkProof, zkLoginAddress };
   };
 
+  if (!zkLoginInfo.nonce) prepareZkLogin();
+
   return {
     ...zkLoginInfo,
     prepareZkLogin,

@@ -9,8 +9,10 @@
  * You can override the next-env if the type is important to you
  * @see https://stackoverflow.com/questions/68103844/how-to-override-next-js-svg-module-declaration
  */
-import { Box, Typography } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 
+import LoginWithFacebook from '@/components/Login/LoginWithFacebook';
+import LoginWithGoogle from '@/components/Login/LoginWithGoogle';
 import MainContainer from '@/components/MainContainer';
 
 // !STARTERCONF -> Select !STARTERCONF and CMD + SHIFT + F
@@ -32,9 +34,17 @@ export default function HomePage() {
         }}
       >
         <MainContainer>
-          <Typography variant="h1" align="center">Sui Safe</Typography>
-          <Typography variant="h2" align="center">Welcome to Sui Safe</Typography>
-          <Typography variant="h3" align="center">The most secure ZkLogin Wallet leveraging native Sui multisig</Typography>
+          <Stack 
+          direction="column" 
+          spacing={2}
+          justifyContent="center"
+            sx={{
+              height: '100%',
+            }}
+          >
+            <LoginWithGoogle />
+            <LoginWithFacebook />
+          </Stack>
         </MainContainer>
       </Box>
   );
