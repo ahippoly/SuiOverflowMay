@@ -9,18 +9,23 @@
  * You can override the next-env if the type is important to you
  * @see https://stackoverflow.com/questions/68103844/how-to-override-next-js-svg-module-declaration
  */
-import { Box, Stack } from '@mui/material';
+import { Box, Button, Stack } from '@mui/material';
+
+import { useZkLogin } from '@/hooks/useZkLogin';
 
 import LoginWithFacebook from '@/components/Login/LoginWithFacebook';
 import LoginWithGoogle from '@/components/Login/LoginWithGoogle';
 import MainContainer from '@/components/MainContainer';
 import ExecuteTransaction from '@/components/Wallet/ExecuteTransaction';
 
+import { OauthTypes } from '@/enums/OauthTypes.enum';
+
 // !STARTERCONF -> Select !STARTERCONF and CMD + SHIFT + F
 // Before you begin editing, follow all comments with `STARTERCONF`,
 // to customize the default configuration.
 
 export default function HomePage() {
+  const zkLogin = useZkLogin();
 
   return (
       <Box
@@ -43,6 +48,15 @@ export default function HomePage() {
               height: '100%',
             }}
           >
+            <Button
+              onClick={async () => {
+                zkLogin.createMultiSigWallet([
+                  OauthTypes.google,
+                ]);
+              }}
+            variant="contained" color="primary">
+              Create Multisig
+            </Button>
             <ExecuteTransaction />
             <LoginWithGoogle />
             <LoginWithFacebook />

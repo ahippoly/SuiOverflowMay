@@ -5,8 +5,13 @@ import {
   SerializedSignature,
 } from '@mysten/sui.js/cryptography';
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
+import { MultiSigPublicKey } from '@mysten/sui.js/multisig';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { MIST_PER_SUI } from '@mysten/sui.js/utils';
+import {
+  toZkLoginPublicIdentifier,
+  ZkLoginPublicIdentifier,
+} from '@mysten/sui.js/zklogin';
 import {
   genAddressSeed,
   generateNonce,
@@ -91,6 +96,118 @@ export const useZkLogin = () => {
     }));
 
     return { zkProof, zkLoginAddress };
+  };
+
+  const createMultiSigWallet = async (oauthProviders: OauthTypes[]) => {
+    const publicZkKeys = oauthProviders
+      .map((provider) => {
+        const zkLoginInfo = zkLoginInfoByProvider[provider][0];
+        if (!zkLoginInfo.jwt) return null;
+        const decodedJwt = jwtDecode(zkLoginInfo.jwt);
+        if (!decodedJwt.sub || !decodedJwt.aud || !decodedJwt.iss) return null;
+        const addressSeed = genAddressSeed(
+          zkLoginInfo.userSalt,
+          'sub',
+          decodedJwt.sub,
+          decodedJwt.aud as string
+        );
+
+        const pkZklogin = toZkLoginPublicIdentifier(
+          addressSeed,
+          decodedJwt.iss
+        );
+        return pkZklogin;
+      })
+      .filter((zkKey) => zkKey !== null) as ZkLoginPublicIdentifier[];
+
+    const multiSigPublicKey = MultiSigPublicKey.fromPublicKeys({
+      threshold: 1,
+      publicKeys: publicZkKeys.map((zkKey) => ({
+        publicKey: zkKey,
+        weight: 1,
+      })),
+    });
+
+    const multisigAddress = multiSigPublicKey.toSuiAddress();
+    console.log('🚀 ~ createMultiSigWal ~ multisigAddress:', multisigAddress);
+
+    const txb = new TransactionBlock();
+    // Transfer 1 SUI to 0xfa0f...8a36.
+    const [coin] = txb.splitCoins(txb.gas, [MIST_PER_SUI * 1n]);
+    txb.transferObjects(
+      [coin],
+      '0xb5b76de7d9a9132a1c11209fc9fd2075f662ff91ee3dce450d8fb05c81ae2867'
+    );
+    txb.setSender(multisigAddress);
+    console.log('2');
+
+    const googleSig = await createZkLoginSignature(OauthTypes.google, txb);
+    if (!googleSig) return;
+
+    const multisig = multiSigPublicKey.combinePartialSignatures([
+      googleSig.signature,
+    ]);
+
+    const client = new SuiClient({ url: getFullnodeUrl('devnet') });
+
+    const res = await client.executeTransactionBlock({
+      transactionBlock: googleSig.bytes,
+      signature: multisig,
+    });
+  };
+
+  const createZkLoginSignature = async (
+    oauthProvider: OauthTypes,
+    transactionBlock: TransactionBlock
+  ): Promise<{
+    bytes: string;
+    signature: SerializedSignature;
+  } | null> => {
+    const zkLoginInfo = zkLoginInfoByProvider[oauthProvider][0];
+    if (!zkLoginInfo.jwt) {
+      console.error('jwt not found');
+      return null;
+    }
+    if (!zkLoginInfo.zkProof) {
+      console.error('zkProof not found');
+      return null;
+    }
+
+    const decodedJwt = jwtDecode(zkLoginInfo.jwt);
+    if (!decodedJwt.sub || !decodedJwt.aud) {
+      console.error('sub or aud not found in jwt');
+      return null;
+    }
+
+    const addressSeed: string = genAddressSeed(
+      BigInt(zkLoginInfo.userSalt),
+      'sub',
+      decodedJwt.sub,
+      decodedJwt.aud as string
+    ).toString();
+
+    const client = new SuiClient({ url: getFullnodeUrl('devnet') });
+    const { secretKey } = decodeSuiPrivateKey(zkLoginInfo.ephemeralPrivateKey);
+    const ephemeralKeyPair = Ed25519Keypair.fromSecretKey(secretKey);
+
+    const { bytes, signature: userSignature } = await transactionBlock.sign({
+      client,
+      signer: ephemeralKeyPair,
+    });
+
+    const zkLoginSignature: SerializedSignature = getZkLoginSignature({
+      inputs: {
+        ...zkLoginInfo.zkProof,
+        addressSeed,
+      },
+      maxEpoch: zkLoginInfo.maxEpoch,
+      userSignature,
+    });
+
+    return {
+      bytes,
+      signature: zkLoginSignature,
+    };
   };
 
   const signTransaction = async (oauthProvider: OauthTypes) => {
@@ -199,6 +316,7 @@ export const useZkLogin = () => {
 
   return {
     ...zkLoginInfoByProvider,
+    createMultiSigWallet,
     signTransaction,
     prepareZkLogin,
     getZkProof,
