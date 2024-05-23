@@ -1,3 +1,5 @@
+import { OauthTypes } from '@/enums/OauthTypes.enum';
+
 export {};
 
 declare global {
@@ -6,8 +8,13 @@ declare global {
     ephemeralPublicKey: string;
     ephemeralExtendedPublicKey: string;
     randomness: string;
-    userSalt: string;
     nonce: string;
+    userSalt: string;
     maxEpoch: string;
+    jwt?: string;
+    zkProof?: string;
+    zkLoginAddress?: string;
   }
+
+  type ZkLoginInfoByProvider = Record<OauthTypes, ZkLoginInfo[]>;
 }

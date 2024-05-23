@@ -78,14 +78,14 @@ export default function RootLayout({
     [prefersDarkMode],
   );
 
-  const [zkLoginInfo, setZkLoginInfo] = useState<ZkLoginInfo>(JSON.parse(
+  const [zkLoginInfoByProvider, setZkLoginInfoByProvider] = useState<ZkLoginInfoByProvider>(JSON.parse(
     window?.sessionStorage.getItem('zkLoginInfo') ||
       JSON.stringify(defaultZkLoginInfo)
   ));
 
   useEffect(() => {
-    window.sessionStorage.setItem('zkLoginInfo', JSON.stringify(zkLoginInfo));
-  }, [zkLoginInfo]);
+    window.sessionStorage.setItem('zkLoginInfo', JSON.stringify(zkLoginInfoByProvider));
+  }, [zkLoginInfoByProvider]);
 
   return (
     <html>
@@ -93,8 +93,8 @@ export default function RootLayout({
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <ZkLoginInfoContext.Provider value={{
-            zkLoginInfo: zkLoginInfo,
-            setZkLoginInfo: setZkLoginInfo
+            zkLoginInfoByProvider: zkLoginInfoByProvider,
+            setZkLoginInfo: setZkLoginInfoByProvider
           }}>
             {children}
           </ZkLoginInfoContext.Provider>

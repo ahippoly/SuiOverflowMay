@@ -4,14 +4,17 @@ import { Button } from "@mui/material";
 
 import { useZkLogin } from "@/hooks/useZkLogin";
 
+import { OauthTypes } from "@/enums/OauthTypes.enum";
+
 function LoginButton(props: {
-  name: string;
+  name: OauthTypes;
   icon: React.ReactNode;
   oauthBaseUrl: string;
   clientId: string;
 }) {
 
-  const zkLoginInfo = useZkLogin();
+  const zkLoginInfoByProvider = useZkLogin();
+  const zkLoginInfo = zkLoginInfoByProvider?.[props.name]?.[0];
 
   const params = new URLSearchParams({
     // Configure client ID and redirect URI with an OpenID provider
@@ -20,10 +23,16 @@ function LoginButton(props: {
     response_type: 'id_token',
     scope: 'openid',
     // See below for details about generation of the nonce
-    nonce: zkLoginInfo.nonce,
+    nonce: zkLoginInfo?.nonce,
   });
 
   const loginOnClick = () => {
+    if (!zkLoginInfo) {
+      console.log("🚀 ~ loginOnClick ~ name:", props.name)
+      console.log("🚀 ~ loginOnClick ~ zkLoginInfo:", zkLoginInfoByProvider)
+      console.error('zkLoginInfo is not found');
+      return;
+    }
     const loginURL = `${props.oauthBaseUrl}?${params}`;
     console.log("🚀 ~ loginOnClick ~ loginURL:", loginURL)
     window.location.replace(loginURL);
@@ -32,7 +41,8 @@ function LoginButton(props: {
   return ( 
     <Button
       onClick={loginOnClick}
-    variant="contained" startIcon={props.icon}>
+      variant="contained" 
+      startIcon={props.icon}>
       Sign In with {props.name}
     </Button>
 

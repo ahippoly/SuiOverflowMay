@@ -3,17 +3,14 @@
 import { createContext } from 'react';
 
 export const ZkLoginInfoContext = createContext<{
-  zkLoginInfo: ZkLoginInfo;
-  setZkLoginInfo: React.Dispatch<React.SetStateAction<ZkLoginInfo>>;
+  zkLoginInfoByProvider: ZkLoginInfoByProvider;
+  setZkLoginInfo: React.Dispatch<React.SetStateAction<ZkLoginInfoByProvider>>;
 }>({
-  zkLoginInfo: {
-    ephemeralPrivateKey: '',
-    ephemeralPublicKey: '',
-    ephemeralExtendedPublicKey: '',
-    randomness: '',
-    userSalt: '',
-    nonce: '',
-    maxEpoch: '',
+  zkLoginInfoByProvider: {
+    facebook: [],
+    google: [],
+    slack: [],
+    twitch: [],
   },
   setZkLoginInfo: (prev) => {
     return prev;
