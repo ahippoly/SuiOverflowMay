@@ -61,6 +61,13 @@ const defaultZkLoginInfo: ZkLoginInfo = {
   ephemeralExtendedPublicKey: '',
 };
 
+const defaultZkLoginInfoByProvider: ZkLoginInfoByProvider = {
+  facebook: [],
+  google: [],
+  twitch: [],
+  slack: [],
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -80,7 +87,7 @@ export default function RootLayout({
 
   const [zkLoginInfoByProvider, setZkLoginInfoByProvider] = useState<ZkLoginInfoByProvider>(JSON.parse(
     window?.sessionStorage.getItem('zkLoginInfo') ||
-      JSON.stringify(defaultZkLoginInfo)
+      JSON.stringify(defaultZkLoginInfoByProvider)
   ));
 
   useEffect(() => {

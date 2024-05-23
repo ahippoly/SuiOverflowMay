@@ -1,9 +1,18 @@
 'use client';
-import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
+import { getFullnodeUrl, SuiClient } from '@mysten/sui.js/client';
 import {
+  decodeSuiPrivateKey,
+  SerializedSignature,
+} from '@mysten/sui.js/cryptography';
+import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
+import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { MIST_PER_SUI } from '@mysten/sui.js/utils';
+import {
+  genAddressSeed,
   generateNonce,
   generateRandomness,
   getExtendedEphemeralPublicKey,
+  getZkLoginSignature,
   jwtToAddress,
 } from '@mysten/zklogin';
 import { jwtDecode } from 'jwt-decode';
@@ -16,7 +25,6 @@ import { generateUserSalt } from '@/lib/sui-related/zkLoginServer';
 
 import { ZkLoginInfoContext } from '@/contexts/zkLoginInfoContext';
 import { OauthTypes } from '@/enums/OauthTypes.enum';
-
 // export const completeZkLoginFlowAfterOauth = async () => {};
 
 export const useZkLogin = () => {
@@ -41,7 +49,7 @@ export const useZkLogin = () => {
     const salt = await generateUserSalt();
 
     const newZkLoginInfo: ZkLoginInfo = {
-      ephemeralPrivateKey: ephemeralKeyPair.export().privateKey,
+      ephemeralPrivateKey: ephemeralKeyPair.getSecretKey(),
       ephemeralPublicKey: ephemeralKeyPair.getPublicKey().toBase64(),
       ephemeralExtendedPublicKey: extendedEphemeralPublicKey,
       randomness,
@@ -85,6 +93,80 @@ export const useZkLogin = () => {
     return { zkProof, zkLoginAddress };
   };
 
+  const signTransaction = async (oauthProvider: OauthTypes) => {
+    const zkLoginInfo = zkLoginInfoByProvider[oauthProvider][0];
+
+    // sign transaction
+    if (!zkLoginInfo.zkLoginAddress) {
+      console.error('zkLoginAddress not found');
+      return;
+    }
+
+    if (!zkLoginInfo.zkProof) {
+      console.error('zkProof not found');
+      return;
+    }
+
+    if (!zkLoginInfo.jwt) {
+      console.error('jwt not found');
+      return;
+    }
+
+    const rpcUrl = getFullnodeUrl('devnet');
+    const client = new SuiClient({ url: rpcUrl });
+    const { secretKey } = decodeSuiPrivateKey(zkLoginInfo.ephemeralPrivateKey);
+    const ephemeralKeyPair = Ed25519Keypair.fromSecretKey(secretKey);
+
+    console.log('1');
+
+    const txb = new TransactionBlock();
+    // Transfer 1 SUI to 0xfa0f...8a36.
+    const [coin] = txb.splitCoins(txb.gas, [MIST_PER_SUI * 1n]);
+    txb.transferObjects(
+      [coin],
+      '0xb5b76de7d9a9132a1c11209fc9fd2075f662ff91ee3dce450d8fb05c81ae2867'
+    );
+    txb.setSender(zkLoginInfo.zkLoginAddress);
+    console.log('2');
+
+    const { bytes, signature: userSignature } = await txb.sign({
+      client,
+      signer: ephemeralKeyPair,
+    });
+
+    console.log('3');
+
+    const decodedJwt = jwtDecode(zkLoginInfo.jwt);
+    if (!decodedJwt.sub || !decodedJwt.aud) {
+      console.error('sub or aud not found in jwt');
+      return;
+    }
+
+    console.log('4');
+
+    const addressSeed: string = genAddressSeed(
+      BigInt(zkLoginInfo.userSalt),
+      'sub',
+      decodedJwt.sub,
+      decodedJwt.aud as string
+    ).toString();
+
+    const zkLoginSignature: SerializedSignature = getZkLoginSignature({
+      inputs: {
+        ...zkLoginInfo.zkProof,
+        addressSeed,
+      },
+      maxEpoch: zkLoginInfo.maxEpoch,
+      userSignature,
+    });
+
+    const res = await client.executeTransactionBlock({
+      transactionBlock: bytes,
+      signature: zkLoginSignature,
+    });
+    console.log('🚀 ~ signTransaction ~ res:', res);
+  };
+
   const handleOauthResponse = () => {
     const tokenInUrl = queryString.parse(location.hash);
     if (!tokenInUrl?.id_token) return;
@@ -106,17 +188,18 @@ export const useZkLogin = () => {
 
   useEffect(() => {
     handleOauthResponse();
-  }, []);
-
-  for (const provider in OauthTypes) {
-    if (typeof provider === 'number') continue;
-    if (!zkLoginInfoByProvider[provider as OauthTypes]) {
-      prepareZkLogin(provider as OauthTypes);
+    for (const provider in OauthTypes) {
+      if (typeof provider === 'number') continue;
+      const providerZkLoginInfo = zkLoginInfoByProvider[provider as OauthTypes];
+      if (!providerZkLoginInfo || providerZkLoginInfo.length === 0) {
+        prepareZkLogin(provider as OauthTypes);
+      }
     }
-  }
+  }, []);
 
   return {
     ...zkLoginInfoByProvider,
+    signTransaction,
     prepareZkLogin,
     getZkProof,
   };

@@ -14,6 +14,7 @@ import { Box, Stack } from '@mui/material';
 import LoginWithFacebook from '@/components/Login/LoginWithFacebook';
 import LoginWithGoogle from '@/components/Login/LoginWithGoogle';
 import MainContainer from '@/components/MainContainer';
+import ExecuteTransaction from '@/components/Wallet/ExecuteTransaction';
 
 // !STARTERCONF -> Select !STARTERCONF and CMD + SHIFT + F
 // Before you begin editing, follow all comments with `STARTERCONF`,
@@ -42,6 +43,7 @@ export default function HomePage() {
               height: '100%',
             }}
           >
+            <ExecuteTransaction />
             <LoginWithGoogle />
             <LoginWithFacebook />
           </Stack>
