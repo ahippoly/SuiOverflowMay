@@ -12,6 +12,7 @@
 import { Box, Stack, Typography, Button } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import { SiTwitch as TwitchIcon } from 'react-icons/si';
+import { SiX as TwitterIcon } from 'react-icons/si';
 import WalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import SvgIcon from '@mui/material/SvgIcon';
 import Link from '@mui/material/Link';
@@ -154,9 +155,7 @@ export default function HomePage() {
               marginTop: 4,
             }}
           >
-            <TwitchIcon style={{ fontSize: 24 }} />
-            <TwitchIcon style={{ fontSize: 24 }} />
-            <TwitchIcon style={{ fontSize: 24 }} />
+            <TwitterIcon style={{ fontSize: 24 }} />
           </Stack>
 
           <Stack 
@@ -169,7 +168,7 @@ export default function HomePage() {
               fontSize: '0.875rem',
             }}
           >
-            <Typography>©2024 MYSTEN LABS. ALL RIGHTS RESERVED.</Typography>
+            <Typography>©2024 ZIODAR LABS. ALL RIGHTS RESERVED.</Typography>
             <Link href="#" sx={{ textDecoration: 'none', color: 'inherit' }}>FAQ</Link>
             <Link href="#" sx={{ textDecoration: 'none', color: 'inherit' }}>TERMS & CONDITIONS</Link>
             <Link href="#" sx={{ textDecoration: 'none', color: 'inherit' }}>PRIVACY POLICY</Link>
