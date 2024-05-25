@@ -1,61 +1,32 @@
-"use client";
+'use client';
 
-import { createTheme, CssBaseline, ThemeProvider, useMediaQuery } from '@mui/material';
+import { createTheme, useMediaQuery } from '@mui/material';
+import {
+  SuiClientProvider,
+  WalletProvider,
+  createNetworkConfig,
+} from '@mysten/dapp-kit';
+import { getFullnodeUrl } from '@mysten/sui.js/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import '@/styles/globals.css';
 // !STARTERCONF This is for demo purposes, remove @/styles/colors.css import immediately
 import '@/styles/colors.css';
 
-// !STARTERCONF Change these default meta
-// !STARTERCONF Look at @/constant/config to change them
-// export const metadata: Metadata = {
-//   metadataBase: new URL(siteConfig.url),
-//   title: {
-//     default: siteConfig.title,
-//     template: `%s | ${siteConfig.title}`,
-//   },
-//   description: siteConfig.description,
-//   robots: { index: true, follow: true },
-//   // !STARTERCONF this is the default favicon, you can generate your own from https://realfavicongenerator.net/
-//   // ! copy to /favicon folder
-//   icons: {
-//     icon: '/favicon/favicon.ico',
-//     shortcut: '/favicon/favicon-16x16.png',
-//     apple: '/favicon/apple-touch-icon.png',
-//   },
-//   manifest: `/favicon/site.webmanifest`,
-//   openGraph: {
-//     url: siteConfig.url,
-//     title: siteConfig.title,
-//     description: siteConfig.description,
-//     siteName: siteConfig.title,
-//     images: [`${siteConfig.url}/images/og.jpg`],
-//     type: 'website',
-//     locale: 'en_US',
-//   },
-//   twitter: {
-//     card: 'summary_large_image',
-//     title: siteConfig.title,
-//     description: siteConfig.description,
-//     images: [`${siteConfig.url}/images/og.jpg`],
-//     // creator: '@th_clarence',
-//   },
-//   // authors: [
-//   //   {
-//   //     name: 'Theodorus Clarence',
-//   //     url: 'https://theodorusclarence.com',
-//   //   },
-//   // ],
-// };
-
-
+// Config options for the networks you want to connect to
+const { networkConfig } = createNetworkConfig({
+  devnet: { url: getFullnodeUrl('devnet') },
+  mainnet: { url: getFullnodeUrl('mainnet') },
+});
+const queryClient = new QueryClient();
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)') && false;
+  const prefersDarkMode =
+    useMediaQuery('(prefers-color-scheme: dark)') && false;
 
   const theme = useMemo(
     () =>
@@ -64,17 +35,23 @@ export default function RootLayout({
           mode: prefersDarkMode ? 'dark' : 'light',
         },
       }),
-    [prefersDarkMode],
+    [prefersDarkMode]
   );
-
 
   return (
     <html>
       <body>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-            {children}
-        </ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <SuiClientProvider networks={networkConfig} defaultNetwork='devnet'>
+            <WalletProvider
+              stashedWallet={{
+                name: 'SuiSafe',
+              }}
+            >
+              {children}
+            </WalletProvider>
+          </SuiClientProvider>
+        </QueryClientProvider>
       </body>
     </html>
   );

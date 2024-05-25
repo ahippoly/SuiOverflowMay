@@ -1,11 +1,20 @@
-"use client";
+'use client';
 
-import { createTheme, CssBaseline, ThemeProvider, useMediaQuery } from '@mui/material';
+import {
+  Box,
+  createTheme,
+  CssBaseline,
+  Stack,
+  ThemeProvider,
+  useMediaQuery,
+} from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 
 import '@/styles/globals.css';
 // !STARTERCONF This is for demo purposes, remove @/styles/colors.css import immediately
 import '@/styles/colors.css';
+
+import MainContainer from '@/components/MainContainer';
 
 import { ZkLoginInfoContext } from '@/contexts/zkLoginInfoContext';
 
@@ -66,14 +75,15 @@ const defaultZkLoginInfoByProvider: ZkLoginInfoByProvider = {
   google: [],
   twitch: [],
   slack: [],
-}
+};
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)') && false;
+  const prefersDarkMode =
+    useMediaQuery('(prefers-color-scheme: dark)') && false;
 
   const theme = useMemo(
     () =>
@@ -82,16 +92,22 @@ export default function RootLayout({
           mode: prefersDarkMode ? 'dark' : 'light',
         },
       }),
-    [prefersDarkMode],
+    [prefersDarkMode]
   );
 
-  const [zkLoginInfoByProvider, setZkLoginInfoByProvider] = useState<ZkLoginInfoByProvider>(JSON.parse(
-    window?.sessionStorage.getItem('zkLoginInfo') ||
-      JSON.stringify(defaultZkLoginInfoByProvider)
-  ));
+  const [zkLoginInfoByProvider, setZkLoginInfoByProvider] =
+    useState<ZkLoginInfoByProvider>(
+      JSON.parse(
+        window?.sessionStorage.getItem('zkLoginInfo') ||
+          JSON.stringify(defaultZkLoginInfoByProvider)
+      )
+    );
 
   useEffect(() => {
-    window.sessionStorage.setItem('zkLoginInfo', JSON.stringify(zkLoginInfoByProvider));
+    window.sessionStorage.setItem(
+      'zkLoginInfo',
+      JSON.stringify(zkLoginInfoByProvider)
+    );
   }, [zkLoginInfoByProvider]);
 
   return (
@@ -99,11 +115,37 @@ export default function RootLayout({
       <body>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <ZkLoginInfoContext.Provider value={{
-            zkLoginInfoByProvider: zkLoginInfoByProvider,
-            setZkLoginInfo: setZkLoginInfoByProvider
-          }}>
-            {children}
+          <ZkLoginInfoContext.Provider
+            value={{
+              zkLoginInfoByProvider: zkLoginInfoByProvider,
+              setZkLoginInfo: setZkLoginInfoByProvider,
+            }}
+          >
+            <Box
+              sx={{
+                backgroundColor: '#4158D0',
+                backgroundImage:
+                  'linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100%',
+              }}
+            >
+              <MainContainer>
+                <Stack
+                  direction='column'
+                  spacing={2}
+                  justifyContent='center'
+                  sx={{
+                    height: '100%',
+                  }}
+                >
+                  {children}
+                </Stack>
+              </MainContainer>
+            </Box>
           </ZkLoginInfoContext.Provider>
         </ThemeProvider>
       </body>
