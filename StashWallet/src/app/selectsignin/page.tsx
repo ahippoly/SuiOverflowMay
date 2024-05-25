@@ -1,6 +1,11 @@
 "use client"
 
 import { Box, Typography, Button } from '@mui/material';
+import GoogleIcon from '@mui/icons-material/Google';
+import { SiTwitch as TwitchIcon } from 'react-icons/si';
+import { SiX as TwitterIcon } from 'react-icons/si';
+import WalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import SvgIcon from '@mui/material/SvgIcon';
 import Link from 'next/link';
 
 function CheckIcon(props) {
@@ -36,11 +41,42 @@ export default function SelectSignin() {
     >
       <Typography variant="h1" align="center" sx={{ fontWeight: '900', marginBottom: 4 }}>1 of 2 suggested</Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Button variant="contained" size="large">Option 1</Button>
-        <Button variant="contained" size="large">
-          <span>Option 2</span>
-          <CheckIcon className="ml-2" style={{ marginLeft: '8px', height: '24px', width: '24px', color: 'green' }} />
-        </Button>
+      <Button 
+              variant="contained" 
+              sx={{ 
+                width: '200px', 
+                height: '50px', 
+                backgroundColor: 'black', 
+                color: 'white', 
+                borderRadius: '25px', 
+                fontSize: '0.75rem',
+                '&:hover': {
+                  backgroundColor: 'white',
+                  color: 'black',
+                }
+              }} 
+              startIcon={<GoogleIcon />}
+            >
+              Sign In with Google
+            </Button>
+            <Button 
+              variant="contained" 
+              sx={{ 
+                width: '200px', 
+                height: '50px', 
+                backgroundColor: 'black', 
+                color: 'white', 
+                borderRadius: '25px', 
+                fontSize: '0.75rem',
+                '&:hover': {
+                  backgroundColor: 'white',
+                  color: 'black',
+                }
+              }} 
+              startIcon={<TwitchIcon />}
+            >
+              Sign In with Twitch
+            </Button>
       </Box>
       <Box sx={{ marginTop: 8 }}>
         <Link href="#" passHref>
