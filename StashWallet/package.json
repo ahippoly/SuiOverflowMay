@@ -24,6 +24,7 @@
     "@mysten/bcs": "^0.11.1",
     "@mysten/sui.js": "^0.54.1",
     "@mysten/zklogin": "^0.6.3",
+    "@mysten/zksend": "^0.8.2",
     "bech32": "^2.0.0",
     "clsx": "^2.0.0",
     "jwt-decode": "^4.0.0",
