@@ -1,7 +1,11 @@
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
-import { generateNonce } from '@mysten/zklogin';
+import { toZkLoginPublicIdentifier } from '@mysten/sui.js/zklogin';
+import { genAddressSeed, generateNonce, jwtToAddress } from '@mysten/zklogin';
+import { jwtDecode } from 'jwt-decode';
 
 import { getCurrentEpoch } from '@/lib/sui-related/utils';
+
+import { OauthTypes } from '@/enums/OauthTypes.enum';
 
 export const generateZkLoginNonce = async (
   randomness: string,
@@ -17,6 +21,53 @@ export const generateZkLoginNonce = async (
   );
 
   return nonce;
+};
+
+export const getOauthTypeFromJwt = (jwt: string): OauthTypes | null => {
+  const decodedJwt = jwtDecode(jwt);
+  if (!decodedJwt.iss) return null;
+
+  switch (decodedJwt.iss) {
+    case 'https://accounts.google.com':
+      return OauthTypes.google;
+    case 'https://www.facebook.com':
+      return OauthTypes.facebook;
+    default:
+      return null;
+  }
+};
+
+export const fetchZkProof = async (zkLoginInfo: ZkLoginAccount) => {
+  const jwt = zkLoginInfo.persistentInfo.jwt;
+  const userSalt = zkLoginInfo.persistentInfo.userSalt;
+  if (!jwt || !userSalt) return new Error('jwt or userSalt is missing');
+  const zkLoginAddress = jwtToAddress(jwt, userSalt);
+
+  const zkProof = (await generateZkProofClient(
+    jwt,
+    zkLoginInfo.ephemeralInfo.ephemeralExtendedPublicKey,
+    userSalt,
+    zkLoginInfo.ephemeralInfo.randomness,
+    zkLoginInfo.persistentInfo.maxEpoch
+  )) as ZkProofSui;
+
+  return { zkProof, zkLoginAddress };
+};
+
+export const getZkLoginPublicIdentifier = (zkLoginInfo: ZkLoginAccount) => {
+  if (!zkLoginInfo.persistentInfo.jwt) return null;
+  const decodedJwt = jwtDecode(zkLoginInfo.persistentInfo.jwt);
+  if (!decodedJwt.sub || !decodedJwt.aud || !decodedJwt.iss) return null;
+  if (!zkLoginInfo.persistentInfo.userSalt) return null;
+  const addressSeed = genAddressSeed(
+    zkLoginInfo.persistentInfo.userSalt,
+    'sub',
+    decodedJwt.sub,
+    decodedJwt.aud as string
+  );
+
+  const pkZklogin = toZkLoginPublicIdentifier(addressSeed, decodedJwt.iss);
+  return pkZklogin;
 };
 
 export const generateZkProofClient = async (

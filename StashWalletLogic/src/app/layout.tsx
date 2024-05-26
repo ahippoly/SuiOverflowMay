@@ -14,9 +14,12 @@ import '@/styles/globals.css';
 // !STARTERCONF This is for demo purposes, remove @/styles/colors.css import immediately
 import '@/styles/colors.css';
 
+import { useZkLogin } from '@/hooks/useZkLogin';
+
 import MainContainer from '@/components/MainContainer';
 
-import { ZkLoginInfoContext } from '@/contexts/zkLoginInfoContext';
+import { ZkLoginAccountsContext } from '@/contexts/zkLoginInfoContext';
+import { OauthTypes } from '@/enums/OauthTypes.enum';
 
 // !STARTERCONF Change these default meta
 // !STARTERCONF Look at @/constant/config to change them
@@ -60,21 +63,68 @@ import { ZkLoginInfoContext } from '@/contexts/zkLoginInfoContext';
 //   // ],
 // };
 
-const defaultZkLoginInfo: ZkLoginInfo = {
-  ephemeralPrivateKey: '',
-  randomness: '',
-  userSalt: '',
-  nonce: '',
-  maxEpoch: '',
-  ephemeralPublicKey: '',
-  ephemeralExtendedPublicKey: '',
+const defaultZkLoginInfo: ZkLoginAccount = {
+  ephemeralInfo: {
+    ephemeralPrivateKey: '',
+    ephemeralPublicKey: '',
+    ephemeralExtendedPublicKey: '',
+    randomness: '',
+    nonce: '',
+  },
+  persistentInfo: {
+    provider: OauthTypes.google,
+    maxEpoch: '',
+  },
 };
 
-const defaultZkLoginInfoByProvider: ZkLoginInfoByProvider = {
-  facebook: [],
-  google: [],
-  twitch: [],
-  slack: [],
+const getStoredEphemeralInfo = (): ZkLoginEphemeralInfo[] => {
+  const storedEphemeralInfos = window?.sessionStorage.getItem(
+    'zkLoginEphemerealInfos'
+  );
+  const ephemeralInfo: ZkLoginEphemeralInfo[] = storedEphemeralInfos
+    ? JSON.parse(storedEphemeralInfos)
+    : [];
+  return ephemeralInfo;
+};
+
+const getStoredPersistentInfo = (): ZkLoginPersistentInfo[] => {
+  const storedPersistentInfos = window?.sessionStorage.getItem(
+    'zkLoginPersistentInfos'
+  );
+  const persistentInfo: ZkLoginPersistentInfo[] = storedPersistentInfos
+    ? JSON.parse(storedPersistentInfos)
+    : [];
+  return persistentInfo;
+};
+
+const getStoredZkLoginInfo = () => {
+  const storedEphemeralInfos = getStoredEphemeralInfo();
+  const storedPersistentInfos = getStoredPersistentInfo();
+  const zkLoginInfo: ZkLoginAccount[] = [];
+  for (let i = 0; i < storedEphemeralInfos.length; i++) {
+    zkLoginInfo.push({
+      ephemeralInfo: storedEphemeralInfos[i],
+      persistentInfo: storedPersistentInfos[i],
+    });
+  }
+  return zkLoginInfo;
+};
+
+const storeZkLoginInfos = (zkLoginInfoByAccounts: ZkLoginInfoByAccounts) => {
+  const ephemeralInfos = zkLoginInfoByAccounts.map(
+    (info) => info.ephemeralInfo
+  );
+  const persistentInfos = zkLoginInfoByAccounts.map(
+    (info) => info.persistentInfo
+  );
+  window.localStorage.setItem(
+    'zkLoginEphemerealInfos',
+    JSON.stringify(ephemeralInfos)
+  );
+  window.localStorage.setItem(
+    'zkLoginPersistentInfos',
+    JSON.stringify(persistentInfos)
+  );
 };
 
 export default function RootLayout({
@@ -95,30 +145,29 @@ export default function RootLayout({
     [prefersDarkMode]
   );
 
-  const [zkLoginInfoByProvider, setZkLoginInfoByProvider] =
-    useState<ZkLoginInfoByProvider>(
-      JSON.parse(
-        window?.sessionStorage.getItem('zkLoginInfo') ||
-          JSON.stringify(defaultZkLoginInfoByProvider)
-      )
-    );
+  const [zkLoginAccounts, setZkLoginAccounts] = useState<ZkLoginInfoByAccounts>(
+    getStoredZkLoginInfo()
+  );
+
+  const zkLogin = useZkLogin();
 
   useEffect(() => {
-    window.sessionStorage.setItem(
-      'zkLoginInfo',
-      JSON.stringify(zkLoginInfoByProvider)
-    );
-  }, [zkLoginInfoByProvider]);
+    storeZkLoginInfos(zkLoginAccounts);
+  }, [zkLoginAccounts]);
+
+  useEffect(() => {
+    zkLogin.handleOauthResponse();
+  }, []);
 
   return (
     <html>
       <body>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <ZkLoginInfoContext.Provider
+          <ZkLoginAccountsContext.Provider
             value={{
-              zkLoginInfoByProvider: zkLoginInfoByProvider,
-              setZkLoginInfo: setZkLoginInfoByProvider,
+              zkLoginInfoByAccounts: zkLoginAccounts,
+              setZkLoginInfoByAccounts: setZkLoginAccounts,
             }}
           >
             <Box
@@ -146,7 +195,7 @@ export default function RootLayout({
                 </Stack>
               </MainContainer>
             </Box>
-          </ZkLoginInfoContext.Provider>
+          </ZkLoginAccountsContext.Provider>
         </ThemeProvider>
       </body>
     </html>

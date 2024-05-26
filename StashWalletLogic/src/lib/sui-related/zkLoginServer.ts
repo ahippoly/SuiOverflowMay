@@ -2,7 +2,7 @@
 
 import { getCurrentEpoch } from '@/lib/sui-related/utils';
 
-export const generateUserSalt = async (): Promise<string> => {
+export const generateUserSalt = (): string => {
   // generate a number between 0 and 2n**128n
 
   const n = BigInt(2);

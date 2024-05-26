@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+model UserSalt {
+  sub               String              @id @unique
+  salt              String
+  MultisigComponent MultisigComponent[]
+}
+
+model Multisig {
+  id         String              @id @default(cuid())
+  components MultisigComponent[]
+}
+
+model MultisigComponent {
+  id          String   @id @default(cuid())
+  multisigId  String
+  multisig    Multisig @relation(fields: [multisigId], references: [id])
+  userSaltSub String
+  userSalt    UserSalt @relation(fields: [userSaltSub], references: [sub])
+}

@@ -26,18 +26,34 @@ declare global {
     headerBase64: string;
     addressSeed: string;
   }
-  interface ZkLoginInfo {
+
+  interface ZkLoginPersistentInfo {
+    provider: OauthTypes;
+    userSalt?: string;
+    maxEpoch: string;
+    jwt?: string;
+    zkLoginAddress?: string;
+  }
+
+  interface ZkLoginEphemeralInfo {
     ephemeralPrivateKey: string;
     ephemeralPublicKey: string;
     ephemeralExtendedPublicKey: string;
     randomness: string;
     nonce: string;
-    userSalt: string;
-    maxEpoch: string;
-    jwt?: string;
     zkProof?: ZkProofSui;
-    zkLoginAddress?: string;
   }
 
-  type ZkLoginInfoByProvider = Record<OauthTypes, ZkLoginInfo[]>;
+  interface ZkLoginAccount {
+    persistentInfo: ZkLoginPersistentInfo;
+    ephemeralInfo: ZkLoginEphemeralInfo;
+  }
+
+  interface MultisigWallet {
+    address: string;
+    publicKey: string;
+    zkLoginInfoComponents: ZkLoginAccount[];
+  }
+
+  type ZkLoginInfoByAccounts = ZkLoginAccount[];
 }
