@@ -10,8 +10,8 @@ function CheckIcon(props) {
     <svg
       {...props}
       xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
+      width="48"
+      height="48"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -39,45 +39,49 @@ export default function SelectSignin() {
       <Typography variant="h1" align="center" sx={{ fontWeight: '900', marginBottom: 12 }}>1 of 2 suggested</Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <CheckIcon sx={{ width: '24px', height: '24px', color: 'black' }} />
+          <CheckIcon sx={{ width: '48px', height: '48px', color: 'black' }} />
           <Button 
             variant="contained" 
             sx={{ 
-              width: '200px', 
-              height: '50px', 
+              width: '300px', 
+              height: '75px', 
               backgroundColor: 'black', 
               color: 'white', 
-              borderRadius: '25px', 
-              fontSize: '0.75rem',
+              borderRadius: '50px',
+              fontSize: '1rem',
+              display: 'flex',
+              justifyContent: 'space-between',
               '&:hover': {
                 backgroundColor: 'white',
                 color: 'black',
               }
             }} 
-            startIcon={<GoogleIcon />}
+            startIcon={<GoogleIcon style={{ fontSize: 32 }} />}
           >
-            Sign In with Google
+            <Box sx={{ flexGrow: 1, textAlign: 'center' }}>Sign In with Google</Box>
           </Button>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <CheckIcon sx={{ width: '24px', height: '24px', color: 'black' }} />
+          <CheckIcon sx={{ width: '48px', height: '48px', color: 'black' }} />
           <Button 
             variant="contained" 
             sx={{ 
-              width: '200px', 
-              height: '50px', 
+              width: '300px', 
+              height: '75px', 
               backgroundColor: 'black', 
               color: 'white', 
-              borderRadius: '25px', 
-              fontSize: '0.75rem',
+              borderRadius: '50px',
+              fontSize: '1rem',
+              display: 'flex',
+              justifyContent: 'space-between',
               '&:hover': {
                 backgroundColor: 'white',
                 color: 'black',
               }
             }} 
-            startIcon={<TwitchIcon />}
+            startIcon={<TwitchIcon style={{ fontSize: 32 }}/>}
           >
-            Sign In with Twitch
+                <Box sx={{ flexGrow: 1, textAlign: 'center' }}>Sign In with Twitch</Box>
           </Button>
         </Box>
       </Box>
