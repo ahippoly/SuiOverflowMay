@@ -78,7 +78,7 @@ const defaultZkLoginInfo: ZkLoginAccount = {
 };
 
 const getStoredEphemeralInfo = (): ZkLoginEphemeralInfo[] => {
-  const storedEphemeralInfos = window?.sessionStorage.getItem(
+  const storedEphemeralInfos = window?.localStorage.getItem(
     'zkLoginEphemerealInfos'
   );
   const ephemeralInfo: ZkLoginEphemeralInfo[] = storedEphemeralInfos
@@ -88,7 +88,7 @@ const getStoredEphemeralInfo = (): ZkLoginEphemeralInfo[] => {
 };
 
 const getStoredPersistentInfo = (): ZkLoginPersistentInfo[] => {
-  const storedPersistentInfos = window?.sessionStorage.getItem(
+  const storedPersistentInfos = window?.localStorage.getItem(
     'zkLoginPersistentInfos'
   );
   const persistentInfo: ZkLoginPersistentInfo[] = storedPersistentInfos
@@ -99,7 +99,15 @@ const getStoredPersistentInfo = (): ZkLoginPersistentInfo[] => {
 
 const getStoredZkLoginInfo = () => {
   const storedEphemeralInfos = getStoredEphemeralInfo();
+  console.log(
+    '🚀 ~ getStoredZkLoginInfo ~ storedEphemeralInfos:',
+    storedEphemeralInfos
+  );
   const storedPersistentInfos = getStoredPersistentInfo();
+  console.log(
+    '🚀 ~ getStoredZkLoginInfo ~ storedPersistentInfos:',
+    storedPersistentInfos
+  );
   const zkLoginInfo: ZkLoginAccount[] = [];
   for (let i = 0; i < storedEphemeralInfos.length; i++) {
     zkLoginInfo.push({
@@ -107,6 +115,7 @@ const getStoredZkLoginInfo = () => {
       persistentInfo: storedPersistentInfos[i],
     });
   }
+  console.log('🚀 ~ getStoredZkLoginInfo ~ zkLoginInfo:', zkLoginInfo);
   return zkLoginInfo;
 };
 
@@ -156,7 +165,8 @@ export default function RootLayout({
   }, [zkLoginAccounts]);
 
   useEffect(() => {
-    zkLogin.handleOauthResponse();
+    if (location.hash.includes('id_token')) zkLogin.handleOauthResponse();
+    else zkLogin.prepareOauthConnection();
   }, []);
 
   return (

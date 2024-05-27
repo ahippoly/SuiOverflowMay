@@ -24,13 +24,14 @@ import { useContext } from 'react';
 import { getCurrentEpoch } from '@/lib/sui-related/utils';
 import {
   generateZkProofClient,
+  getOauthTypeFromJwt,
   getZkLoginPublicIdentifier,
+  restoreAccountPreparation,
+  saveAccountPreparation,
 } from '@/lib/sui-related/zkLogin';
-import { generateUserSalt } from '@/lib/sui-related/zkLoginServer';
 
 import { getOrCreateUserSalt } from '@/backend/userSalt';
 import { ZkLoginAccountsContext } from '@/contexts/zkLoginInfoContext';
-import { OauthTypes } from '@/enums/OauthTypes.enum';
 // export const completeZkLoginFlowAfterOauth = async () => {};
 
 export const useZkLogin = () => {
@@ -38,7 +39,7 @@ export const useZkLogin = () => {
     ZkLoginAccountsContext
   );
 
-  const prepareOauthConnection = async (oauthProvider: OauthTypes) => {
+  const prepareOauthConnection = async () => {
     const ephemeralKeyPair = new Ed25519Keypair();
     const randomness = generateRandomness();
     const maxEpoch = Number((await getCurrentEpoch()).epoch) + 10;
@@ -53,21 +54,17 @@ export const useZkLogin = () => {
       randomness
     );
 
-    const newZkLoginInfo: ZkLoginAccount = {
-      ephemeralInfo: {
-        ephemeralPrivateKey: ephemeralKeyPair.getSecretKey(),
-        ephemeralPublicKey: ephemeralKeyPair.getPublicKey().toBase64(),
-        ephemeralExtendedPublicKey: extendedEphemeralPublicKey,
-        randomness,
-        nonce,
-      },
-      persistentInfo: {
-        provider: oauthProvider,
-        maxEpoch: maxEpoch.toString(),
-      },
+    const newZkLoginInfo: ZkLoginAccountPreparation = {
+      ephemeralPrivateKey: ephemeralKeyPair.getSecretKey(),
+      ephemeralPublicKey: ephemeralKeyPair.getPublicKey().toBase64(),
+      ephemeralExtendedPublicKey: extendedEphemeralPublicKey,
+      randomness,
+      nonce,
+      maxEpoch: maxEpoch.toString(),
     };
 
-    setZkLoginInfoByAccounts((prev) => [...prev, newZkLoginInfo]);
+    saveAccountPreparation(newZkLoginInfo);
+
     return newZkLoginInfo;
   };
 
@@ -289,17 +286,44 @@ export const useZkLogin = () => {
     const tokenInUrl = queryString.parse(location.hash);
     if (!tokenInUrl?.id_token) return;
     const token = tokenInUrl.id_token as string;
+    window.location.hash = '';
 
     const decodedToken = jwtDecode(token) as ExtendedJwtPayload;
     console.log('🚀 ~ handleOauthResponse ~ decodedToken:', decodedToken);
+    const nonce = decodedToken.nonce;
+    console.log('🚀 ~ handleOauthResponse ~ nonce:', nonce);
+    if (!nonce) return;
+    const zkAccountPreparation = restoreAccountPreparation();
+    if (!zkAccountPreparation) return;
 
-    const test = await generateUserSalt();
-    console.log('🚀 ~ handleOauthResponse ~ test:', test);
+    const provider = getOauthTypeFromJwt(token);
+    if (!provider) return;
+
     const salts: string[] = (await getOrCreateUserSalt(token)).salts;
-    console.log('🚀 ~ handleOauthResponse ~ salts:', salts);
+    const newZkLoginAccount: ZkLoginAccount = {
+      ephemeralInfo: {
+        ephemeralPrivateKey: zkAccountPreparation.ephemeralPrivateKey,
+        ephemeralPublicKey: zkAccountPreparation.ephemeralPublicKey,
+        ephemeralExtendedPublicKey:
+          zkAccountPreparation.ephemeralExtendedPublicKey,
+        randomness: zkAccountPreparation.randomness,
+        nonce: zkAccountPreparation.nonce,
+      },
+      persistentInfo: {
+        provider: provider,
+        maxEpoch: zkAccountPreparation.maxEpoch,
+        jwt: token,
+        email: decodedToken.email,
+        userSalt: salts[0],
+        zkLoginAddress: jwtToAddress(token, salts[0]),
+      },
+    };
+
+    setZkLoginInfoByAccounts((prev) => {
+      return [...prev, newZkLoginAccount];
+    });
 
     //remove token from url
-    window.location.hash = '';
     // history.pushState('', document.title, window.location.pathname);
   };
 

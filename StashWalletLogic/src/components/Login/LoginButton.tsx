@@ -2,7 +2,7 @@
 
 import { Button } from '@mui/material';
 
-import { useZkLogin } from '@/hooks/useZkLogin';
+import { restoreAccountPreparation } from '@/lib/sui-related/zkLogin';
 
 import { OauthTypes } from '@/enums/OauthTypes.enum';
 
@@ -12,10 +12,9 @@ function LoginButton(props: {
   oauthBaseUrl: string;
   clientId: string;
 }) {
-  const zkLogin = useZkLogin();
-
-  const loginOnClick = async () => {
-    const zkLoginInfo = await zkLogin.prepareOauthConnection(props.name);
+  const loginOnClick = () => {
+    const zkLoginAccountPreparation = restoreAccountPreparation();
+    if (!zkLoginAccountPreparation) return;
 
     const params = new URLSearchParams({
       // Configure client ID and redirect URI with an OpenID provider
@@ -24,7 +23,7 @@ function LoginButton(props: {
       response_type: 'id_token',
       scope: 'openid email',
       // See below for details about generation of the nonce
-      nonce: zkLoginInfo.ephemeralInfo.nonce,
+      nonce: zkLoginAccountPreparation.nonce,
     });
 
     const loginURL = `${props.oauthBaseUrl}?${params}`;

@@ -23,6 +23,24 @@ export const generateZkLoginNonce = async (
   return nonce;
 };
 
+export const saveAccountPreparation = (
+  zkLoginInfo: ZkLoginAccountPreparation
+) => {
+  window.localStorage.setItem(
+    'zkLoginAccountPreparation',
+    JSON.stringify(zkLoginInfo)
+  );
+};
+
+export const restoreAccountPreparation =
+  (): ZkLoginAccountPreparation | null => {
+    const storedAccountPreparation = window.localStorage.getItem(
+      'zkLoginAccountPreparation'
+    );
+    if (!storedAccountPreparation) return null;
+    return JSON.parse(storedAccountPreparation);
+  };
+
 export const getOauthTypeFromJwt = (jwt: string): OauthTypes | null => {
   const decodedJwt = jwtDecode(jwt);
   if (!decodedJwt.iss) return null;

@@ -33,6 +33,7 @@ declare global {
     maxEpoch: string;
     jwt?: string;
     zkLoginAddress?: string;
+    email?: string;
   }
 
   interface ZkLoginEphemeralInfo {
@@ -47,6 +48,15 @@ declare global {
   interface ZkLoginAccount {
     persistentInfo: ZkLoginPersistentInfo;
     ephemeralInfo: ZkLoginEphemeralInfo;
+  }
+
+  interface ZkLoginAccountPreparation {
+    maxEpoch: string;
+    ephemeralPrivateKey: string;
+    ephemeralPublicKey: string;
+    ephemeralExtendedPublicKey: string;
+    randomness: string;
+    nonce: string;
   }
 
   interface MultisigWallet {
