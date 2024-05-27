@@ -3,9 +3,9 @@
 import { createContext } from 'react';
 
 export const SelectedZkAccount = createContext<{
-  selectedZkAccount: ZkLoginAccount | undefined;
+  selectedZkAccount: ZkLoginFullAccount | undefined;
   setSelectedZkAccount: React.Dispatch<
-    React.SetStateAction<ZkLoginAccount | undefined>
+    React.SetStateAction<ZkLoginFullAccount | undefined>
   >;
 }>({
   selectedZkAccount: undefined,

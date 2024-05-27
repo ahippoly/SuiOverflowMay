@@ -3,13 +3,13 @@
 import { createContext } from 'react';
 
 export const ZkLoginAccountsContext = createContext<{
-  zkLoginInfoByAccounts: ZkLoginInfoByAccounts;
-  setZkLoginInfoByAccounts: React.Dispatch<
-    React.SetStateAction<ZkLoginInfoByAccounts>
+  zkLoginAccounts: ZkLoginFullAccount[];
+  setZkLoginAccounts: React.Dispatch<
+    React.SetStateAction<ZkLoginFullAccount[]>
   >;
 }>({
-  zkLoginInfoByAccounts: [],
-  setZkLoginInfoByAccounts: (prev) => {
+  zkLoginAccounts: [],
+  setZkLoginAccounts: (prev) => {
     return prev;
   },
 });

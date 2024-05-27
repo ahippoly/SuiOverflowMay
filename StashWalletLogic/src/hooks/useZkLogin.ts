@@ -15,7 +15,6 @@ import {
   generateRandomness,
   getExtendedEphemeralPublicKey,
   getZkLoginSignature,
-  jwtToAddress,
 } from '@mysten/zklogin';
 import { jwtDecode } from 'jwt-decode';
 import queryString from 'query-string';
@@ -23,9 +22,8 @@ import { useContext } from 'react';
 
 import { getCurrentEpoch } from '@/lib/sui-related/utils';
 import {
+  buildMultiSigWallet,
   fullAccountToFetchedAccount,
-  generateZkProofClient,
-  getZkLoginPublicIdentifier,
   makeZkLoginFullAccountFromPreparation,
   restoreAccountPreparation,
   restoreAccountsFromFetchedAccounts,
@@ -52,9 +50,10 @@ const getAndResetUrlToken = () => {
 };
 
 export const useZkLogin = () => {
-  const { zkLoginInfoByAccounts, setZkLoginInfoByAccounts } = useContext(
-    ZkLoginAccountsContext
-  );
+  const {
+    zkLoginAccounts: zkLoginInfoByAccounts,
+    setZkLoginAccounts: setZkLoginInfoByAccounts,
+  } = useContext(ZkLoginAccountsContext);
 
   const prepareOauthConnection = async () => {
     const ephemeralKeyPair = new Ed25519Keypair();
@@ -86,45 +85,30 @@ export const useZkLogin = () => {
     return newZkLoginInfo;
   };
 
-  const getZkProof = async (userSalt: string, jwt: string) => {
-    const zkLoginAddress = jwtToAddress(jwt, userSalt);
-    const zkLoginInfo = zkLoginInfoByAccounts.find(
-      (info) => info.persistentInfo.userSalt === userSalt
+  const createMultiSigSignature = async (
+    multisigAccount: MultiSigAccount,
+    transactionBlock: TransactionBlock
+  ) => {
+    const multisigPublicKey = await buildMultiSigWallet(
+      multisigAccount.components,
+      1
     );
+    const multisigAddress = multisigPublicKey.toSuiAddress();
 
-    if (!zkLoginInfo) {
-      console.error('zkLoginInfo not found');
-      return;
-    }
+    // generate signatures from zkAccounts
 
-    const zkProof = await generateZkProofClient(
-      jwt,
-      zkLoginInfo.ephemeralInfo.ephemeralExtendedPublicKey,
-      userSalt,
-      zkLoginInfo.ephemeralInfo.randomness,
-      zkLoginInfo.persistentInfo.maxEpoch
-    );
+    const signature = multisigPublicKey.combinePartialSignatures([]);
 
-    setZkLoginInfoByAccounts((prev) => {
-      const index = prev.findIndex(
-        (info) => info.persistentInfo.userSalt === userSalt
-      );
-      if (index === -1) return prev;
-      prev[index].persistentInfo.zkLoginAddress = zkLoginAddress;
-      prev[index].ephemeralInfo.zkProof = zkProof;
-      return prev;
-    });
-
-    return { zkProof, zkLoginAddress };
+    return signature;
   };
 
   const createMultiSigWallet = async (
-    zkLogins: ZkLoginAccount[],
+    zkLogins: ZkLoginFetchedAccount[],
     threshold: number
   ) => {
-    const publicZkKeys = zkLogins
-      .map(getZkLoginPublicIdentifier)
-      .filter((zkKey) => zkKey !== null) as ZkLoginPublicIdentifier[];
+    const publicZkKeys = zkLogins.map(
+      (account) => new ZkLoginPublicIdentifier(account.publicIdentifier)
+    );
 
     const multiSigPublicKey = MultiSigPublicKey.fromPublicKeys({
       threshold: threshold,
@@ -164,43 +148,14 @@ export const useZkLogin = () => {
   };
 
   const createZkLoginSignature = async (
-    zkLoginInfo: ZkLoginAccount,
+    zkAccount: ZkLoginFullAccount,
     transactionBlock: TransactionBlock
   ): Promise<{
     bytes: string;
     signature: SerializedSignature;
   } | null> => {
-    if (!zkLoginInfo.persistentInfo.jwt) {
-      console.error('jwt not found');
-      return null;
-    }
-    if (!zkLoginInfo.ephemeralInfo.zkProof) {
-      console.error('zkProof not found');
-      return null;
-    }
-
-    const decodedJwt = jwtDecode(zkLoginInfo.persistentInfo.jwt);
-    if (!decodedJwt.sub || !decodedJwt.aud) {
-      console.error('sub or aud not found in jwt');
-      return null;
-    }
-
-    if (!zkLoginInfo.persistentInfo.userSalt) {
-      console.error('userSalt not found');
-      return null;
-    }
-
-    const addressSeed: string = genAddressSeed(
-      BigInt(zkLoginInfo.persistentInfo.userSalt),
-      'sub',
-      decodedJwt.sub,
-      decodedJwt.aud as string
-    ).toString();
-
     const client = new SuiClient({ url: getFullnodeUrl('devnet') });
-    const { secretKey } = decodeSuiPrivateKey(
-      zkLoginInfo.ephemeralInfo.ephemeralPrivateKey
-    );
+    const { secretKey } = decodeSuiPrivateKey(zkAccount.ephemeralPrivateKey);
     const ephemeralKeyPair = Ed25519Keypair.fromSecretKey(secretKey);
 
     const { bytes, signature: userSignature } = await transactionBlock.sign({
@@ -210,10 +165,10 @@ export const useZkLogin = () => {
 
     const zkLoginSignature: SerializedSignature = getZkLoginSignature({
       inputs: {
-        ...zkLoginInfo.ephemeralInfo.zkProof,
-        addressSeed,
+        ...zkAccount.zkProof,
+        addressSeed: zkAccount.addressSeed,
       },
-      maxEpoch: zkLoginInfo.persistentInfo.maxEpoch,
+      maxEpoch: zkAccount.maxEpoch,
       userSignature,
     });
 
@@ -309,12 +264,21 @@ export const useZkLogin = () => {
 
     if (storedAccounts.length === 0) {
       const fetchedAccounts = await signIn(token);
+      const fetchedZkLoginAccounts: ZkLoginFetchedAccount[] =
+        fetchedAccounts.accounts.map((account) => ({
+          email: account.email,
+          issuer: account.issuer,
+          publicIdentifier: account.publicIdentifier,
+          salt: account.salt,
+          sub: account.sub,
+          type: 'zkPartial',
+        }));
       if (fetchedAccounts.accounts.length > 0) {
         // restore accounts
         const restoredAccounts = await restoreAccountsFromFetchedAccounts(
           token,
           zkAccountPreparation,
-          fetchedAccounts.accounts
+          fetchedZkLoginAccounts
         );
         saveFullAccountsWithOldsOnes(restoredAccounts);
       } else {
@@ -348,7 +312,7 @@ export const useZkLogin = () => {
     createMultiSigWallet,
     signTransaction,
     prepareOauthConnection,
-    getZkProof,
+    createZkLoginSignature,
     handleOauthResponse,
   };
 };

@@ -8,18 +8,14 @@ import {
   ThemeProvider,
   useMediaQuery,
 } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import '@/styles/globals.css';
 // !STARTERCONF This is for demo purposes, remove @/styles/colors.css import immediately
 import '@/styles/colors.css';
 
-import { useZkLogin } from '@/hooks/useZkLogin';
-
+import ZkLoginProvider from '@/components/ContextProvider/ZkLoginProvider';
 import MainContainer from '@/components/MainContainer';
-
-import { ZkLoginAccountsContext } from '@/contexts/zkLoginInfoContext';
-import { OauthTypes } from '@/enums/OauthTypes.enum';
 
 // !STARTERCONF Change these default meta
 // !STARTERCONF Look at @/constant/config to change them
@@ -63,79 +59,6 @@ import { OauthTypes } from '@/enums/OauthTypes.enum';
 //   // ],
 // };
 
-const defaultZkLoginInfo: ZkLoginAccount = {
-  ephemeralInfo: {
-    ephemeralPrivateKey: '',
-    ephemeralPublicKey: '',
-    ephemeralExtendedPublicKey: '',
-    randomness: '',
-    nonce: '',
-  },
-  persistentInfo: {
-    provider: OauthTypes.google,
-    maxEpoch: '',
-  },
-};
-
-const getStoredEphemeralInfo = (): ZkLoginEphemeralInfo[] => {
-  const storedEphemeralInfos = window?.localStorage.getItem(
-    'zkLoginEphemerealInfos'
-  );
-  const ephemeralInfo: ZkLoginEphemeralInfo[] = storedEphemeralInfos
-    ? JSON.parse(storedEphemeralInfos)
-    : [];
-  return ephemeralInfo;
-};
-
-const getStoredPersistentInfo = (): ZkLoginPersistentInfo[] => {
-  const storedPersistentInfos = window?.localStorage.getItem(
-    'zkLoginPersistentInfos'
-  );
-  const persistentInfo: ZkLoginPersistentInfo[] = storedPersistentInfos
-    ? JSON.parse(storedPersistentInfos)
-    : [];
-  return persistentInfo;
-};
-
-const getStoredZkLoginInfo = () => {
-  const storedEphemeralInfos = getStoredEphemeralInfo();
-  console.log(
-    '🚀 ~ getStoredZkLoginInfo ~ storedEphemeralInfos:',
-    storedEphemeralInfos
-  );
-  const storedPersistentInfos = getStoredPersistentInfo();
-  console.log(
-    '🚀 ~ getStoredZkLoginInfo ~ storedPersistentInfos:',
-    storedPersistentInfos
-  );
-  const zkLoginInfo: ZkLoginAccount[] = [];
-  for (let i = 0; i < storedEphemeralInfos.length; i++) {
-    zkLoginInfo.push({
-      ephemeralInfo: storedEphemeralInfos[i],
-      persistentInfo: storedPersistentInfos[i],
-    });
-  }
-  console.log('🚀 ~ getStoredZkLoginInfo ~ zkLoginInfo:', zkLoginInfo);
-  return zkLoginInfo;
-};
-
-const storeZkLoginInfos = (zkLoginInfoByAccounts: ZkLoginInfoByAccounts) => {
-  const ephemeralInfos = zkLoginInfoByAccounts.map(
-    (info) => info.ephemeralInfo
-  );
-  const persistentInfos = zkLoginInfoByAccounts.map(
-    (info) => info.persistentInfo
-  );
-  window.localStorage.setItem(
-    'zkLoginEphemerealInfos',
-    JSON.stringify(ephemeralInfos)
-  );
-  window.localStorage.setItem(
-    'zkLoginPersistentInfos',
-    JSON.stringify(persistentInfos)
-  );
-};
-
 export default function RootLayout({
   children,
 }: {
@@ -154,32 +77,12 @@ export default function RootLayout({
     [prefersDarkMode]
   );
 
-  const [zkLoginAccounts, setZkLoginAccounts] = useState<ZkLoginInfoByAccounts>(
-    getStoredZkLoginInfo()
-  );
-
-  const zkLogin = useZkLogin();
-
-  useEffect(() => {
-    storeZkLoginInfos(zkLoginAccounts);
-  }, [zkLoginAccounts]);
-
-  useEffect(() => {
-    if (location.hash.includes('id_token')) zkLogin.handleOauthResponse();
-    else zkLogin.prepareOauthConnection();
-  }, []);
-
   return (
     <html>
       <body>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <ZkLoginAccountsContext.Provider
-            value={{
-              zkLoginInfoByAccounts: zkLoginAccounts,
-              setZkLoginInfoByAccounts: setZkLoginAccounts,
-            }}
-          >
+          <ZkLoginProvider>
             <Box
               sx={{
                 backgroundColor: '#4158D0',
@@ -205,7 +108,7 @@ export default function RootLayout({
                 </Stack>
               </MainContainer>
             </Box>
-          </ZkLoginAccountsContext.Provider>
+          </ZkLoginProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -52,9 +52,16 @@ declare global {
     ephemeralInfo: ZkLoginEphemeralInfo;
   }
 
-  type ZkLoginFetchedAccount = Omit<ZkAccount, 'userId'>;
-  interface ZkLoginFullAccount {
-    provider: OauthTypes;
+  type WalletType = 'multisig' | 'zkFull' | 'zkPartial' | 'privateKey';
+  interface WalletAccount {
+    type: WalletType;
+  }
+
+  type ZkLoginFetchedAccount = Omit<ZkAccount, 'userId'> &
+    WalletAccount & { type: 'zkPartial' };
+  interface ZkLoginFullAccount extends WalletAccount {
+    type: 'zkFull';
+    issuer: string;
     userSalt: string;
     maxEpoch: string;
     jwt: string;
@@ -68,6 +75,14 @@ declare global {
     randomness: string;
     nonce: string;
     zkProof: ZkProofSui;
+  }
+
+  interface MultiSigAccount extends WalletAccount {
+    type: 'multisig';
+    address: string;
+    publicKey: string;
+    components: ZkLoginFetchedAccount[];
+    usableSigners: ZkLoginFullAccount[];
   }
 
   interface ZkLoginAccountPreparation {

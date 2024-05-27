@@ -1,5 +1,9 @@
+import { MultiSigPublicKey } from '@mysten/sui.js/dist/cjs/multisig';
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
-import { toZkLoginPublicIdentifier } from '@mysten/sui.js/zklogin';
+import {
+  toZkLoginPublicIdentifier,
+  ZkLoginPublicIdentifier,
+} from '@mysten/sui.js/zklogin';
 import { genAddressSeed, generateNonce, jwtToAddress } from '@mysten/zklogin';
 import { jwtDecode } from 'jwt-decode';
 
@@ -59,8 +63,9 @@ export const fullAccountToFetchedAccount = (
     sub: decodedJwt.sub as string,
     email: decodedJwt.email as string,
     salt: fullAccount.userSalt,
-    issuer: fullAccount.provider,
+    issuer: fullAccount.issuer,
     publicIdentifier: fullAccount.publicIdentifier,
+    type: 'zkPartial',
   };
 };
 
@@ -157,12 +162,12 @@ export const restoreAccountsFromFetchedAccounts = async (
   const provider = getOauthTypeFromJwt(jwt);
   if (!provider) throw new Error('Provider not found');
 
-  const restoredAccounts = [];
+  const restoredAccounts: ZkLoginFullAccount[] = [];
   for (const fetchedAccount of fetchedAccounts) {
     if (
       fetchedAccount.sub !== decodedJwt.sub ||
       fetchedAccount.email !== decodedJwt.email ||
-      fetchedAccount.issuer !== provider
+      fetchedAccount.issuer !== decodedJwt.iss
     )
       continue;
 
@@ -183,7 +188,8 @@ export const restoreAccountsFromFetchedAccounts = async (
     );
 
     restoredAccounts.push({
-      provider: provider,
+      type: 'zkFull',
+      issuer: decodedJwt.iss as string,
       userSalt: fetchedAccount.salt,
       maxEpoch: accountPreparation.maxEpoch,
       jwt,
@@ -201,6 +207,27 @@ export const restoreAccountsFromFetchedAccounts = async (
   }
 
   return restoredAccounts;
+};
+
+export const buildMultiSigWallet = async (
+  zkLogins: ZkLoginFetchedAccount[],
+  threshold: number
+) => {
+  const publicZkKeys = zkLogins.map(
+    (account) => new ZkLoginPublicIdentifier(account.publicIdentifier)
+  );
+
+  const multiSigPublicKey = MultiSigPublicKey.fromPublicKeys({
+    threshold: threshold,
+    publicKeys: publicZkKeys.map((zkKey) => ({
+      publicKey: zkKey,
+      weight: 1,
+    })),
+  });
+
+  // const multisigAddress = multiSigPublicKey.toSuiAddress();
+
+  return multiSigPublicKey;
 };
 
 export const makeZkLoginFullAccountFromPreparation = async (
@@ -233,7 +260,8 @@ export const makeZkLoginFullAccountFromPreparation = async (
   );
 
   return {
-    provider: provider,
+    type: 'zkFull',
+    issuer: decodedJwt.iss as string,
     userSalt: salt,
     maxEpoch: zkLoginPreparation.maxEpoch,
     jwt,
