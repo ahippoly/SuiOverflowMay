@@ -8,21 +8,26 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
-model UserSalt {
-  sub               String              @id @unique
-  salt              String
-  MultisigComponent MultisigComponent[]
+model ZkAccount {
+  sub              String     @id @unique
+  publicIdentifier String     @unique
+  email            String
+  issuer           String
+  salt             String
+  userId           String
+  user             User       @relation(fields: [userId], references: [id])
+  multisig         Multisig[]
 }
 
 model Multisig {
-  id         String              @id @default(cuid())
-  components MultisigComponent[]
+  id         String      @id @default(cuid())
+  components ZkAccount[]
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
 }
 
-model MultisigComponent {
-  id          String   @id @default(cuid())
-  multisigId  String
-  multisig    Multisig @relation(fields: [multisigId], references: [id])
-  userSaltSub String
-  userSalt    UserSalt @relation(fields: [userSaltSub], references: [sub])
+model User {
+  id         String      @id @default(cuid())
+  zkAccounts ZkAccount[]
+  multisigs  Multisig[]
 }

@@ -1,3 +1,5 @@
+import { ZkAccount } from '@prisma/client';
+
 import { OauthTypes } from '@/enums/OauthTypes.enum';
 
 export {};
@@ -50,7 +52,26 @@ declare global {
     ephemeralInfo: ZkLoginEphemeralInfo;
   }
 
+  type ZkLoginFetchedAccount = ZkAccount;
+  interface ZkLoginFullAccount {
+    provider: OauthTypes;
+    userSalt: string;
+    maxEpoch: string;
+    jwt: string;
+    address: string;
+    addressSeed: string;
+    email: string;
+    ephemeralPrivateKey: string;
+    ephemeralPublicKey: string;
+    ephemeralExtendedPublicKey: string;
+    publicIdentifier: string;
+    randomness: string;
+    nonce: string;
+    zkProof: ZkProofSui;
+  }
+
   interface ZkLoginAccountPreparation {
+    preparationType: 'signIn' | 'addAccount';
     maxEpoch: string;
     ephemeralPrivateKey: string;
     ephemeralPublicKey: string;

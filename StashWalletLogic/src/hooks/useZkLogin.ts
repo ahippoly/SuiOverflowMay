@@ -30,9 +30,18 @@ import {
   saveAccountPreparation,
 } from '@/lib/sui-related/zkLogin';
 
-import { getOrCreateUserSalt } from '@/backend/userSalt';
+import { signIn } from '@/backend/userAccountHandling';
+import { DEFAULT_MAX_EPOCH } from '@/constant/config';
 import { ZkLoginAccountsContext } from '@/contexts/zkLoginInfoContext';
 // export const completeZkLoginFlowAfterOauth = async () => {};
+
+const getAndResetUrlToken = () => {
+  const tokenInUrl = queryString.parse(location.hash);
+  if (!tokenInUrl?.id_token) throw new Error('id_token not found');
+  const token = tokenInUrl.id_token as string;
+  window.location.hash = '';
+  return token;
+};
 
 export const useZkLogin = () => {
   const { zkLoginInfoByAccounts, setZkLoginInfoByAccounts } = useContext(
@@ -42,7 +51,8 @@ export const useZkLogin = () => {
   const prepareOauthConnection = async () => {
     const ephemeralKeyPair = new Ed25519Keypair();
     const randomness = generateRandomness();
-    const maxEpoch = Number((await getCurrentEpoch()).epoch) + 10;
+    const maxEpoch =
+      Number((await getCurrentEpoch()).epoch) + DEFAULT_MAX_EPOCH;
 
     const extendedEphemeralPublicKey = getExtendedEphemeralPublicKey(
       ephemeralKeyPair.getPublicKey()
@@ -283,35 +293,44 @@ export const useZkLogin = () => {
   };
 
   const handleOauthResponse = async () => {
-    const tokenInUrl = queryString.parse(location.hash);
-    if (!tokenInUrl?.id_token) return;
-    const token = tokenInUrl.id_token as string;
-    window.location.hash = '';
-
+    const token = getAndResetUrlToken();
     const decodedToken = jwtDecode(token) as ExtendedJwtPayload;
-    console.log('🚀 ~ handleOauthResponse ~ decodedToken:', decodedToken);
-    const nonce = decodedToken.nonce;
-    console.log('🚀 ~ handleOauthResponse ~ nonce:', nonce);
-    if (!nonce) return;
     const zkAccountPreparation = restoreAccountPreparation();
-    if (!zkAccountPreparation) return;
+    if (!zkAccountPreparation) throw new Error('no account preparation found');
+
+    if (zkAccountPreparation.preparationType === 'signIn') {
+      const fetchedAccounts = await signIn(token);
+      if (fetchedAccounts.accounts.length > 0) {
+        // restore acccount
+      } else {
+        // register new account
+      }
+    } else if (zkAccountPreparation.preparationType === 'addAccount') {
+      // add account
+    }
+
+    const nonce = decodedToken.nonce;
+    if (!nonce) throw new Error('nonce not found in jwt');
+    const zkAccountPreparation3 = restoreAccountPreparation();
+    if (!zkAccountPreparation3) throw new Error('no account preparation found');
 
     const provider = getOauthTypeFromJwt(token);
-    if (!provider) return;
+    if (!provider) throw new Error('Provider unknow');
+    console.log('all good');
 
-    const salts: string[] = (await getOrCreateUserSalt(token)).salts;
+    const salts: string[] = (await getUserZkAccountsOrCreateOne(token)).salts;
     const newZkLoginAccount: ZkLoginAccount = {
       ephemeralInfo: {
-        ephemeralPrivateKey: zkAccountPreparation.ephemeralPrivateKey,
-        ephemeralPublicKey: zkAccountPreparation.ephemeralPublicKey,
+        ephemeralPrivateKey: zkAccountPreparation3.ephemeralPrivateKey,
+        ephemeralPublicKey: zkAccountPreparation3.ephemeralPublicKey,
         ephemeralExtendedPublicKey:
-          zkAccountPreparation.ephemeralExtendedPublicKey,
-        randomness: zkAccountPreparation.randomness,
-        nonce: zkAccountPreparation.nonce,
+          zkAccountPreparation3.ephemeralExtendedPublicKey,
+        randomness: zkAccountPreparation3.randomness,
+        nonce: zkAccountPreparation3.nonce,
       },
       persistentInfo: {
         provider: provider,
-        maxEpoch: zkAccountPreparation.maxEpoch,
+        maxEpoch: zkAccountPreparation3.maxEpoch,
         jwt: token,
         email: decodedToken.email,
         userSalt: salts[0],
