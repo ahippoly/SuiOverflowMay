@@ -93,7 +93,7 @@ export const getUserMultisigs = async (user: User): Promise<Multisig[]> => {
   return multisigs;
 };
 
-export const createNewUser = async (newAccount: ZkAccount) => {
+export const createNewUser = async (newAccount: ZkLoginFetchedAccount) => {
   const user = await prisma.user.create({
     data: {
       zkAccounts: {
@@ -105,7 +105,10 @@ export const createNewUser = async (newAccount: ZkAccount) => {
   return user;
 };
 
-export const addAccountToUser = async (user: User, newAccount: ZkAccount) => {
+export const addAccountToUser = async (
+  user: User,
+  newAccount: ZkLoginFetchedAccount
+) => {
   const account = await prisma.zkAccount.create({
     data: {
       ...newAccount,

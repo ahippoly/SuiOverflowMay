@@ -52,7 +52,7 @@ declare global {
     ephemeralInfo: ZkLoginEphemeralInfo;
   }
 
-  type ZkLoginFetchedAccount = ZkAccount;
+  type ZkLoginFetchedAccount = Omit<ZkAccount, 'userId'>;
   interface ZkLoginFullAccount {
     provider: OauthTypes;
     userSalt: string;
@@ -71,7 +71,6 @@ declare global {
   }
 
   interface ZkLoginAccountPreparation {
-    preparationType: 'signIn' | 'addAccount';
     maxEpoch: string;
     ephemeralPrivateKey: string;
     ephemeralPublicKey: string;

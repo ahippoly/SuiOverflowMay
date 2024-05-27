@@ -23,14 +23,22 @@ import { useContext } from 'react';
 
 import { getCurrentEpoch } from '@/lib/sui-related/utils';
 import {
+  fullAccountToFetchedAccount,
   generateZkProofClient,
-  getOauthTypeFromJwt,
   getZkLoginPublicIdentifier,
+  makeZkLoginFullAccountFromPreparation,
   restoreAccountPreparation,
+  restoreAccountsFromFetchedAccounts,
+  restoreFullAccounts,
   saveAccountPreparation,
+  saveFullAccountsWithOldsOnes,
 } from '@/lib/sui-related/zkLogin';
 
-import { signIn } from '@/backend/userAccountHandling';
+import {
+  addAccount,
+  registerNewUser,
+  signIn,
+} from '@/backend/userAccountHandling';
 import { DEFAULT_MAX_EPOCH } from '@/constant/config';
 import { ZkLoginAccountsContext } from '@/contexts/zkLoginInfoContext';
 // export const completeZkLoginFlowAfterOauth = async () => {};
@@ -294,56 +302,45 @@ export const useZkLogin = () => {
 
   const handleOauthResponse = async () => {
     const token = getAndResetUrlToken();
-    const decodedToken = jwtDecode(token) as ExtendedJwtPayload;
     const zkAccountPreparation = restoreAccountPreparation();
     if (!zkAccountPreparation) throw new Error('no account preparation found');
 
-    if (zkAccountPreparation.preparationType === 'signIn') {
+    const storedAccounts = restoreFullAccounts();
+
+    if (storedAccounts.length === 0) {
       const fetchedAccounts = await signIn(token);
       if (fetchedAccounts.accounts.length > 0) {
-        // restore acccount
+        // restore accounts
+        const restoredAccounts = await restoreAccountsFromFetchedAccounts(
+          token,
+          zkAccountPreparation,
+          fetchedAccounts.accounts
+        );
+        saveFullAccountsWithOldsOnes(restoredAccounts);
       } else {
+        const newAccount = await makeZkLoginFullAccountFromPreparation(
+          token,
+          zkAccountPreparation
+        );
         // register new account
+        await registerNewUser(
+          jwtDecode(token).sub as string,
+          fullAccountToFetchedAccount(newAccount)
+        );
+        saveFullAccountsWithOldsOnes([newAccount]);
       }
-    } else if (zkAccountPreparation.preparationType === 'addAccount') {
+    } else {
       // add account
+      const newAccount = await makeZkLoginFullAccountFromPreparation(
+        token,
+        zkAccountPreparation
+      );
+      await addAccount(
+        storedAccounts[0].jwt,
+        fullAccountToFetchedAccount(newAccount)
+      );
+      saveFullAccountsWithOldsOnes([newAccount]);
     }
-
-    const nonce = decodedToken.nonce;
-    if (!nonce) throw new Error('nonce not found in jwt');
-    const zkAccountPreparation3 = restoreAccountPreparation();
-    if (!zkAccountPreparation3) throw new Error('no account preparation found');
-
-    const provider = getOauthTypeFromJwt(token);
-    if (!provider) throw new Error('Provider unknow');
-    console.log('all good');
-
-    const salts: string[] = (await getUserZkAccountsOrCreateOne(token)).salts;
-    const newZkLoginAccount: ZkLoginAccount = {
-      ephemeralInfo: {
-        ephemeralPrivateKey: zkAccountPreparation3.ephemeralPrivateKey,
-        ephemeralPublicKey: zkAccountPreparation3.ephemeralPublicKey,
-        ephemeralExtendedPublicKey:
-          zkAccountPreparation3.ephemeralExtendedPublicKey,
-        randomness: zkAccountPreparation3.randomness,
-        nonce: zkAccountPreparation3.nonce,
-      },
-      persistentInfo: {
-        provider: provider,
-        maxEpoch: zkAccountPreparation3.maxEpoch,
-        jwt: token,
-        email: decodedToken.email,
-        userSalt: salts[0],
-        zkLoginAddress: jwtToAddress(token, salts[0]),
-      },
-    };
-
-    setZkLoginInfoByAccounts((prev) => {
-      return [...prev, newZkLoginAccount];
-    });
-
-    //remove token from url
-    // history.pushState('', document.title, window.location.pathname);
   };
 
   return {

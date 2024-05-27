@@ -35,7 +35,7 @@ export const restoreFetchedAccounts = (): ZkLoginFetchedAccount[] => {
   return JSON.parse(storedAccounts);
 };
 
-export const saveFetchedAccounts = (
+export const saveFetchedAccountsWithOldsOnes = (
   newFetchedAccounts: ZkLoginFetchedAccount[]
 ) => {
   const storedAccounts = restoreFetchedAccounts();
@@ -51,7 +51,22 @@ export const saveFetchedAccounts = (
   );
 };
 
-export const saveFullAccounts = (newFullAccounts: ZkLoginFullAccount[]) => {
+export const fullAccountToFetchedAccount = (
+  fullAccount: ZkLoginFullAccount
+): ZkLoginFetchedAccount => {
+  const decodedJwt = jwtDecode(fullAccount.jwt) as ExtendedJwtPayload;
+  return {
+    sub: decodedJwt.sub as string,
+    email: decodedJwt.email as string,
+    salt: fullAccount.userSalt,
+    issuer: fullAccount.provider,
+    publicIdentifier: fullAccount.publicIdentifier,
+  };
+};
+
+export const saveFullAccountsWithOldsOnes = (
+  newFullAccounts: ZkLoginFullAccount[]
+) => {
   const storedAccounts = restoreFullAccounts();
   for (const newAccount of newFullAccounts) {
     const existingAccount = storedAccounts.find(

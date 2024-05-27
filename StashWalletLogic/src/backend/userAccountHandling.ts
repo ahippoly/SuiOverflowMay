@@ -25,7 +25,10 @@ export const signIn = async (
   return { accounts, multisigs };
 };
 
-export const registerNewUser = async (jwt: string, newAccount: ZkAccount) => {
+export const registerNewUser = async (
+  jwt: string,
+  newAccount: ZkLoginFetchedAccount
+) => {
   const user = await getUserFromJwt(jwt);
   if (user) throw new Error('User already exists');
 
@@ -36,7 +39,7 @@ export const registerNewUser = async (jwt: string, newAccount: ZkAccount) => {
 
 export const addAccount = async (
   otherAccountSub: string,
-  newAccount: ZkAccount
+  newAccount: ZkLoginFetchedAccount
 ) => {
   const user = await getUserFromSub(otherAccountSub);
   if (!user) throw new Error('User not found');
@@ -46,7 +49,9 @@ export const addAccount = async (
   return true;
 };
 
-export const addMultisig = async (multisigAccounts: ZkAccount[]) => {
+export const addMultisig = async (
+  multisigAccounts: ZkLoginFetchedAccount[]
+) => {
   const potentialUsers = await getUsersFromSubs(
     multisigAccounts.map((a) => a.sub)
   );
@@ -56,6 +61,10 @@ export const addMultisig = async (multisigAccounts: ZkAccount[]) => {
   const user = potentialUsers[0];
 
   // Create multisig
-  await addMultisigToUser(user, multisigAccounts);
+  const multisigComponents = multisigAccounts.map((a) => ({
+    userId: user.id,
+    ...a,
+  }));
+  await addMultisigToUser(user, multisigComponents);
   return true;
 };
