@@ -3,9 +3,6 @@
 import { Box, Typography, Button } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import { SiTwitch as TwitchIcon } from 'react-icons/si';
-import { SiX as TwitterIcon } from 'react-icons/si';
-import WalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import SvgIcon from '@mui/material/SvgIcon';
 import Link from 'next/link';
 
 function CheckIcon(props) {
@@ -13,8 +10,8 @@ function CheckIcon(props) {
     <svg
       {...props}
       xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
+      width="48"
+      height="48"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -39,48 +36,72 @@ export default function SelectSignin() {
         minHeight: '100vh',
       }}
     >
-      <Typography variant="h1" align="center" sx={{ fontWeight: '900', marginBottom: 4 }}>1 of 2 suggested</Typography>
+      <Typography variant="h1" align="center" sx={{ fontWeight: '900', marginBottom: 12 }}>1 of 2 suggested</Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Button 
-              variant="contained" 
-              sx={{ 
-                width: '200px', 
-                height: '50px', 
-                backgroundColor: 'black', 
-                color: 'white', 
-                borderRadius: '25px', 
-                fontSize: '0.75rem',
-                '&:hover': {
-                  backgroundColor: 'white',
-                  color: 'black',
-                }
-              }} 
-              startIcon={<GoogleIcon />}
-            >
-              Sign In with Google
-            </Button>
-            <Button 
-              variant="contained" 
-              sx={{ 
-                width: '200px', 
-                height: '50px', 
-                backgroundColor: 'black', 
-                color: 'white', 
-                borderRadius: '25px', 
-                fontSize: '0.75rem',
-                '&:hover': {
-                  backgroundColor: 'white',
-                  color: 'black',
-                }
-              }} 
-              startIcon={<TwitchIcon />}
-            >
-              Sign In with Twitch
-            </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <CheckIcon sx={{ width: '48px', height: '48px', color: 'black' }} />
+          <Button 
+            variant="contained" 
+            sx={{ 
+              width: '300px', 
+              height: '75px', 
+              backgroundColor: 'black', 
+              color: 'white', 
+              borderRadius: '50px',
+              fontSize: '1rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              '&:hover': {
+                backgroundColor: 'white',
+                color: 'black',
+              }
+            }} 
+            startIcon={<GoogleIcon style={{ fontSize: 32 }} />}
+          >
+            <Box sx={{ flexGrow: 1, textAlign: 'center' }}>Sign In with Google</Box>
+          </Button>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <CheckIcon sx={{ width: '48px', height: '48px', color: 'black' }} />
+          <Button 
+            variant="contained" 
+            sx={{ 
+              width: '300px', 
+              height: '75px', 
+              backgroundColor: 'black', 
+              color: 'white', 
+              borderRadius: '50px',
+              fontSize: '1rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              '&:hover': {
+                backgroundColor: 'white',
+                color: 'black',
+              }
+            }} 
+            startIcon={<TwitchIcon style={{ fontSize: 32 }}/>}
+          >
+                <Box sx={{ flexGrow: 1, textAlign: 'center' }}>Sign In with Twitch</Box>
+          </Button>
+        </Box>
       </Box>
       <Box sx={{ marginTop: 8 }}>
-        <Link href="#" passHref>
-          <Button variant="outlined" size="large">Skip</Button>
+        <Link href="/walletdisplay/page.tsx" passHref>
+          <Button 
+            variant="outlined" 
+            size="large"
+            sx={{ 
+              backgroundColor: 'white', 
+              color: 'black', 
+              border: '2px solid black', 
+              '&:hover': {
+                backgroundColor: 'black',
+                color: 'white',
+              }
+            }}
+          >
+            Skip
+          </Button>
         </Link>
       </Box>
     </Box>
