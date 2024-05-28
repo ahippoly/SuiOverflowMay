@@ -74,8 +74,22 @@ declare global {
     publicIdentifier: string;
     randomness: string;
     nonce: string;
-    zkProof: ZkProofSui;
+    zkProof?: ZkProofSui;
   }
+
+  type TransactionState = 'idle' | 'pending' | 'success' | 'error';
+  interface UseZkLoginState {
+    isFetchingAccounts: boolean;
+    isPromptingTransaction: boolean;
+    transactionState: TransactionState;
+  }
+
+  interface TransactionSignature {
+    bytes: string;
+    signature: SerializedSignature;
+  }
+
+  type WalletAddress = string;
 
   interface MultiSigAccount extends WalletAccount {
     type: 'multisig';
@@ -83,6 +97,7 @@ declare global {
     publicKey: string;
     components: ZkLoginFetchedAccount[];
     activeAccounts: ZkLoginFullAccount[];
+    treshold: number;
   }
 
   interface ZkLoginAccountPreparation {

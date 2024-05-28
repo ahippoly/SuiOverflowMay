@@ -1,6 +1,14 @@
+import { getFullnodeUrl, SuiClient } from '@mysten/sui.js/client';
+import {
+  decodeSuiPrivateKey,
+  SerializedSignature,
+} from '@mysten/sui.js/cryptography';
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
 import { MultiSigPublicKey } from '@mysten/sui.js/multisig';
+import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { MIST_PER_SUI } from '@mysten/sui.js/utils';
 import {
+  getZkLoginSignature,
   toZkLoginPublicIdentifier,
   ZkLoginPublicIdentifier,
 } from '@mysten/sui.js/zklogin';
@@ -69,11 +77,58 @@ export const fullAccountToFetchedAccount = (
   };
 };
 
+export const assembleMultiSigWallet = async (
+  zkLogins: ZkLoginFetchedAccount[],
+  threshold: number
+) => {
+  const publicZkKeys = zkLogins.map(
+    (account) => new ZkLoginPublicIdentifier(account.publicIdentifier)
+  );
+
+  const multiSigPublicKey = MultiSigPublicKey.fromPublicKeys({
+    threshold: threshold,
+    publicKeys: publicZkKeys.map((zkKey) => ({
+      publicKey: zkKey,
+      weight: 1,
+    })),
+  });
+
+  // const multisigAddress = multiSigPublicKey.toSuiAddress();
+
+  return multiSigPublicKey;
+};
+
+export const sendTokens = async (
+  fromAccount: ZkLoginFullAccount,
+  to: WalletAddress,
+  amount: number
+) => {
+  const txb = new TransactionBlock();
+  // Transfer 1 SUI to 0xfa0f...8a36.
+  const [coin] = txb.splitCoins(txb.gas, [MIST_PER_SUI * BigInt(amount)]);
+  txb.transferObjects([coin], to);
+  txb.setSender(fromAccount.address);
+
+  const transactionSignature = await createZkLoginSignature(fromAccount, txb);
+
+  return await executeTransaction(
+    transactionSignature.bytes,
+    transactionSignature.signature
+  );
+};
+
 export const getOauthTypeFromJwt = (jwt: string): OauthTypes | null => {
   const decodedJwt = jwtDecode(jwt);
   if (!decodedJwt.iss) return null;
 
-  switch (decodedJwt.iss) {
+  return getOauthTypeFromIssuer(decodedJwt.iss);
+};
+
+export const getOauthTypeFromIssuer = (issuer: string): OauthTypes | null => {
+  for (const oauthType of Object.values(OauthTypes)) {
+    if (issuer === oauthType) return oauthType;
+  }
+  switch (issuer) {
     case 'https://accounts.google.com':
       return OauthTypes.google;
     case 'https://www.facebook.com':
@@ -126,7 +181,7 @@ export const restoreAccountsFromFetchedAccounts = async (
     throw new Error('JWT sub, aud, or iss not found');
 
   const provider = getOauthTypeFromJwt(jwt);
-  if (!provider) throw new Error('Provider not found');
+  if (!provider) throw new Error('Provider unknown');
 
   const restoredAccounts: ZkLoginFullAccount[] = [];
   for (const fetchedAccount of fetchedAccounts) {
@@ -146,13 +201,14 @@ export const restoreAccountsFromFetchedAccounts = async (
     );
     const pkZklogin = toZkLoginPublicIdentifier(addressSeed, decodedJwt.iss);
 
-    const zkProof = await generateZkProof(
-      jwt,
-      accountPreparation.ephemeralExtendedPublicKey,
-      fetchedAccount.salt,
-      accountPreparation.randomness,
-      accountPreparation.maxEpoch
-    );
+    // const zkProof = await generateZkProof(
+    //   jwt,
+    //   accountPreparation.ephemeralExtendedPublicKey,
+    //   fetchedAccount.salt,
+    //   accountPreparation.randomness,
+    //   accountPreparation.maxEpoch
+    // );
+    const zkProof = undefined;
 
     restoredAccounts.push({
       type: 'zkFull',
@@ -206,7 +262,7 @@ export const makeZkLoginFullAccountFromPreparation = async (
     throw new Error('JWT sub, aud, or iss not found');
 
   const provider = getOauthTypeFromJwt(jwt);
-  if (!provider) throw new Error('Provider not found');
+  if (!provider) throw new Error('Provider unknown');
 
   const salt = generateUserSalt();
   const address = jwtToAddress(jwt, salt);
@@ -271,8 +327,11 @@ export const generateZkProof = async (
     body: payload,
   });
   if (!res.ok)
-    throw new Error('Failed to generate zkProof : ' + res.statusText);
-  return res.json();
+    throw new Error(
+      'Failed to generate zkProof : ' +
+        JSON.stringify(await res.json(), null, 2)
+    );
+  return await res.json();
 };
 
 export const generateUserSalt = (): string => {
@@ -285,4 +344,83 @@ export const generateUserSalt = (): string => {
   const randomNumber = BigInt(Math.floor(Math.random() * Number(maxNumber)));
 
   return randomNumber.toString();
+};
+
+export const createMultiSigSignature = async (
+  multisigAccount: MultiSigAccount,
+  transactionBlock: TransactionBlock
+): Promise<TransactionSignature> => {
+  const multisigPublicKey = await buildMultiSigWallet(
+    multisigAccount.components,
+    multisigAccount.treshold
+  );
+  const multisigAddress = multisigPublicKey.toSuiAddress();
+
+  const threshold = multisigPublicKey.getThreshold();
+  if (threshold > multisigAccount.components.length) {
+    throw new Error('Threshold is greater than the number of active accounts');
+  }
+
+  const signaturesPromises: Promise<TransactionSignature>[] = [];
+  for (let i = 0; i < threshold; i++) {
+    const account = multisigAccount.activeAccounts[i];
+    signaturesPromises.push(createZkLoginSignature(account, transactionBlock));
+  }
+  const transactionSignatures: TransactionSignature[] = await Promise.all(
+    signaturesPromises
+  );
+
+  // generate signatures from zkAccounts
+
+  const signature = multisigPublicKey.combinePartialSignatures(
+    transactionSignatures.map((sig) => sig.signature)
+  );
+
+  return {
+    bytes: transactionSignatures[0].bytes,
+    signature,
+  };
+};
+
+export const createZkLoginSignature = async (
+  zkAccount: ZkLoginFullAccount,
+  transactionBlock: TransactionBlock
+): Promise<TransactionSignature> => {
+  const client = new SuiClient({ url: getFullnodeUrl('devnet') });
+  const { secretKey } = decodeSuiPrivateKey(zkAccount.ephemeralPrivateKey);
+  const ephemeralKeyPair = Ed25519Keypair.fromSecretKey(secretKey);
+
+  const { bytes, signature: userSignature } = await transactionBlock.sign({
+    client,
+    signer: ephemeralKeyPair,
+  });
+
+  if (!zkAccount.zkProof) {
+    throw new Error('zkProof is missing');
+  }
+
+  const zkLoginSignature: SerializedSignature = getZkLoginSignature({
+    inputs: {
+      ...zkAccount.zkProof,
+      addressSeed: zkAccount.addressSeed,
+    },
+    maxEpoch: zkAccount.maxEpoch,
+    userSignature,
+  }) as SerializedSignature;
+
+  return {
+    bytes,
+    signature: zkLoginSignature,
+  };
+};
+
+export const executeTransaction = async (
+  transactionBytes: string,
+  signature: SerializedSignature
+) => {
+  const suiClient = new SuiClient({ url: getFullnodeUrl('devnet') });
+  return suiClient.executeTransactionBlock({
+    transactionBlock: transactionBytes,
+    signature: signature,
+  });
 };

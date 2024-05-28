@@ -1,5 +1,20 @@
 'use client';
 
+import queryString from 'query-string';
+
+import {
+  addAccount,
+  registerNewUser,
+  signIn,
+} from '@/backend/userAccountHandling';
+
+import {
+  fullAccountToFetchedAccount,
+  makeZkLoginFullAccountFromPreparation,
+  parseJwt,
+  restoreAccountsFromFetchedAccounts,
+} from './zkLogin';
+
 export const restoreFullAccounts = (): ZkLoginFullAccount[] => {
   const storedAccounts = window.localStorage.getItem('zkLoginFullAccounts');
   if (!storedAccounts) return [];
@@ -28,6 +43,70 @@ export const saveFetchedAccountsWithOldsOnes = (
   );
 };
 
+const getAndResetUrlToken = () => {
+  const tokenInUrl = queryString.parse(location.hash);
+  if (!tokenInUrl?.id_token) throw new Error('id_token not found');
+  const token = tokenInUrl.id_token as string;
+  window.location.hash = '';
+  return token;
+};
+
+export const handleOauthResponse = async () => {
+  const token = getAndResetUrlToken();
+  const zkAccountPreparation = restoreAccountPreparation();
+  if (!zkAccountPreparation) throw new Error('no account preparation found');
+
+  const storedAccounts = restoreFullAccounts();
+
+  if (storedAccounts.length === 0) {
+    const fetchedAccounts = await signIn(token);
+    const fetchedZkLoginAccounts: ZkLoginFetchedAccount[] =
+      fetchedAccounts.accounts.map((account) => ({
+        email: account.email,
+        issuer: account.issuer,
+        publicIdentifier: account.publicIdentifier,
+        salt: account.salt,
+        sub: account.sub,
+        type: 'zkPartial',
+      }));
+    if (fetchedAccounts.accounts.length > 0) {
+      // restore accounts
+      const restoredAccounts = await restoreAccountsFromFetchedAccounts(
+        token,
+        zkAccountPreparation,
+        fetchedZkLoginAccounts
+      );
+      saveFullAccountsWithOldsOnes(restoredAccounts);
+      resetAccountPreparation();
+      return restoredAccounts;
+    } else {
+      const newAccount = await makeZkLoginFullAccountFromPreparation(
+        token,
+        zkAccountPreparation
+      );
+      // register new account
+      await registerNewUser(token, fullAccountToFetchedAccount(newAccount));
+      saveFullAccountsWithOldsOnes([newAccount]);
+      resetAccountPreparation();
+      return [newAccount];
+    }
+  } else {
+    // add account
+    const newAccount = await makeZkLoginFullAccountFromPreparation(
+      token,
+      zkAccountPreparation
+    );
+    const firstAccountDecodedJwt = parseJwt(storedAccounts[0].jwt);
+    await addAccount(
+      firstAccountDecodedJwt.sub as string,
+      fullAccountToFetchedAccount(newAccount)
+    );
+    saveFullAccountsWithOldsOnes([newAccount]);
+    resetAccountPreparation();
+    return [newAccount];
+  }
+};
+
 export const saveFullAccountsWithOldsOnes = (
   newFullAccounts: ZkLoginFullAccount[]
 ) => {
@@ -42,6 +121,10 @@ export const saveFullAccountsWithOldsOnes = (
     'zkLoginFullAccounts',
     JSON.stringify(storedAccounts)
   );
+};
+
+export const resetAccountPreparation = () => {
+  window.localStorage.removeItem('zkLoginAccountPreparation');
 };
 
 export const restoreAccountPreparation =

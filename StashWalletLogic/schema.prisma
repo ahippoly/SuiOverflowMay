@@ -9,11 +9,11 @@ datasource db {
 }
 
 model ZkAccount {
-  sub              String     @id @unique
+  sub              String
   publicIdentifier String     @unique
   email            String
   issuer           String
-  salt             String
+  salt             String     @id @unique
   userId           String
   user             User       @relation(fields: [userId], references: [id])
   multisig         Multisig[]
