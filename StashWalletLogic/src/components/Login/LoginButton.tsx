@@ -2,7 +2,7 @@
 
 import { Button } from '@mui/material';
 
-import { restoreAccountPreparation } from '@/lib/sui-related/zkLogin';
+import { restoreAccountPreparation } from '@/lib/sui-related/zkLoginClient';
 
 import { OauthTypes } from '@/enums/OauthTypes.enum';
 

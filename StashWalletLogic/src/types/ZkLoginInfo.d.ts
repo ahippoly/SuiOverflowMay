@@ -82,7 +82,7 @@ declare global {
     address: string;
     publicKey: string;
     components: ZkLoginFetchedAccount[];
-    usableSigners: ZkLoginFullAccount[];
+    activeAccounts: ZkLoginFullAccount[];
   }
 
   interface ZkLoginAccountPreparation {

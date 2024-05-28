@@ -1,14 +1,16 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 
 import { useZkLogin } from '@/hooks/useZkLogin';
-import { restoreFullAccounts } from '@/lib/sui-related/zkLogin';
+import { restoreFullAccounts } from '@/lib/sui-related/zkLoginClient';
 
-import { SelectedZkAccount } from '@/contexts/selectedZkAccountContext';
+import { SelectedZkAccountContext } from '@/contexts/selectedZkAccountContext';
 import { ZkLoginAccountsContext } from '@/contexts/zkLoginInfoContext';
 
 function ZkLoginProvider({ children }: { children: React.ReactNode }) {
   const [zkLoginAccounts, setZkLoginAccounts] = useState<ZkLoginFullAccount[]>(
-    restoreFullAccounts()
+    []
   );
   const [selectedAccount, setSelectedAccount] = useState<ZkLoginFullAccount>();
 
@@ -16,11 +18,15 @@ function ZkLoginProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (location.hash.includes('id_token')) zkLogin.handleOauthResponse();
-    else zkLogin.prepareOauthConnection();
+    else {
+      zkLogin.prepareOauthConnection();
+      const storedAccounts = restoreFullAccounts();
+      setZkLoginAccounts(storedAccounts);
+    }
   }, []);
 
   return (
-    <SelectedZkAccount.Provider
+    <SelectedZkAccountContext.Provider
       value={{
         selectedZkAccount: selectedAccount,
         setSelectedZkAccount: setSelectedAccount,
@@ -34,7 +40,7 @@ function ZkLoginProvider({ children }: { children: React.ReactNode }) {
       >
         {children}
       </ZkLoginAccountsContext.Provider>
-    </SelectedZkAccount.Provider>
+    </SelectedZkAccountContext.Provider>
   );
 }
 

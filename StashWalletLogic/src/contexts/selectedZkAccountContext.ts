@@ -2,7 +2,7 @@
 
 import { createContext } from 'react';
 
-export const SelectedZkAccount = createContext<{
+export const SelectedZkAccountContext = createContext<{
   selectedZkAccount: ZkLoginFullAccount | undefined;
   setSelectedZkAccount: React.Dispatch<
     React.SetStateAction<ZkLoginFullAccount | undefined>

@@ -1,11 +1,12 @@
-import { MultiSigPublicKey } from '@mysten/sui.js/dist/cjs/multisig';
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
+import { MultiSigPublicKey } from '@mysten/sui.js/multisig';
 import {
   toZkLoginPublicIdentifier,
   ZkLoginPublicIdentifier,
 } from '@mysten/sui.js/zklogin';
 import { genAddressSeed, generateNonce, jwtToAddress } from '@mysten/zklogin';
-import { jwtDecode } from 'jwt-decode';
+import { ZkAccount } from '@prisma/client';
+import { jwtDecode, JwtPayload } from 'jwt-decode';
 
 import { getCurrentEpoch } from '@/lib/sui-related/utils';
 
@@ -27,32 +28,31 @@ export const generateZkLoginNonce = async (
   return nonce;
 };
 
-export const restoreFullAccounts = (): ZkLoginFullAccount[] => {
-  const storedAccounts = window.localStorage.getItem('zkLoginFullAccounts');
-  if (!storedAccounts) return [];
-  return JSON.parse(storedAccounts);
-};
+export const fetchedAccountToZkAccount = (
+  fetchedAccount: ZkLoginFetchedAccount
+): Omit<ZkAccount, 'userId'> => ({
+  sub: fetchedAccount.sub,
+  email: fetchedAccount.email,
+  issuer: fetchedAccount.issuer,
+  salt: fetchedAccount.salt,
+  publicIdentifier: fetchedAccount.publicIdentifier,
+});
 
-export const restoreFetchedAccounts = (): ZkLoginFetchedAccount[] => {
-  const storedAccounts = window.localStorage.getItem('zkLoginFetchedAccounts');
-  if (!storedAccounts) return [];
-  return JSON.parse(storedAccounts);
-};
-
-export const saveFetchedAccountsWithOldsOnes = (
-  newFetchedAccounts: ZkLoginFetchedAccount[]
-) => {
-  const storedAccounts = restoreFetchedAccounts();
-  for (const newAccount of newFetchedAccounts) {
-    const existingAccount = storedAccounts.find(
-      (account) => account.salt === newAccount.salt
-    );
-    if (!existingAccount) storedAccounts.push(newAccount);
+export const parseJwt = (jwt: string): JwtPayload => {
+  if (!jwt) {
+    throw new Error('JWT not provided');
   }
-  window.localStorage.setItem(
-    'zkLoginFetchedAccounts',
-    JSON.stringify(storedAccounts)
-  );
+
+  const decodedJwt = jwtDecode(jwt);
+  if (!decodedJwt) {
+    throw new Error('JWT not decoded');
+  }
+
+  if (!decodedJwt.sub) {
+    throw new Error('JWT sub not found');
+  }
+
+  return decodedJwt;
 };
 
 export const fullAccountToFetchedAccount = (
@@ -68,40 +68,6 @@ export const fullAccountToFetchedAccount = (
     type: 'zkPartial',
   };
 };
-
-export const saveFullAccountsWithOldsOnes = (
-  newFullAccounts: ZkLoginFullAccount[]
-) => {
-  const storedAccounts = restoreFullAccounts();
-  for (const newAccount of newFullAccounts) {
-    const existingAccount = storedAccounts.find(
-      (account) => account.userSalt === newAccount.userSalt
-    );
-    if (!existingAccount) storedAccounts.push(newAccount);
-  }
-  window.localStorage.setItem(
-    'zkLoginFullAccounts',
-    JSON.stringify(storedAccounts)
-  );
-};
-
-export const saveAccountPreparation = (
-  zkLoginInfo: ZkLoginAccountPreparation
-) => {
-  window.localStorage.setItem(
-    'zkLoginAccountPreparation',
-    JSON.stringify(zkLoginInfo)
-  );
-};
-
-export const restoreAccountPreparation =
-  (): ZkLoginAccountPreparation | null => {
-    const storedAccountPreparation = window.localStorage.getItem(
-      'zkLoginAccountPreparation'
-    );
-    if (!storedAccountPreparation) return null;
-    return JSON.parse(storedAccountPreparation);
-  };
 
 export const getOauthTypeFromJwt = (jwt: string): OauthTypes | null => {
   const decodedJwt = jwtDecode(jwt);
@@ -123,7 +89,7 @@ export const fetchZkProof = async (zkLoginInfo: ZkLoginAccount) => {
   if (!jwt || !userSalt) return new Error('jwt or userSalt is missing');
   const zkLoginAddress = jwtToAddress(jwt, userSalt);
 
-  const zkProof = (await generateZkProofClient(
+  const zkProof = (await generateZkProof(
     jwt,
     zkLoginInfo.ephemeralInfo.ephemeralExtendedPublicKey,
     userSalt,
@@ -184,7 +150,8 @@ export const restoreAccountsFromFetchedAccounts = async (
       jwt,
       accountPreparation.ephemeralExtendedPublicKey,
       fetchedAccount.salt,
-      accountPreparation.randomness
+      accountPreparation.randomness,
+      accountPreparation.maxEpoch
     );
 
     restoredAccounts.push({
@@ -245,7 +212,7 @@ export const makeZkLoginFullAccountFromPreparation = async (
   const address = jwtToAddress(jwt, salt);
 
   const addressSeed = genAddressSeed(
-    zkLoginPreparation.ephemeralPublicKey,
+    salt,
     'sub',
     decodedJwt.sub,
     decodedJwt.aud as string
@@ -256,7 +223,8 @@ export const makeZkLoginFullAccountFromPreparation = async (
     jwt,
     zkLoginPreparation.ephemeralExtendedPublicKey,
     salt,
-    zkLoginPreparation.randomness
+    zkLoginPreparation.randomness,
+    zkLoginPreparation.maxEpoch
   );
 
   return {
@@ -278,7 +246,7 @@ export const makeZkLoginFullAccountFromPreparation = async (
   };
 };
 
-export const generateZkProofClient = async (
+export const generateZkProof = async (
   jwt: string,
   extendedEphemeralPublicKey: string,
   salt: string,
@@ -295,15 +263,16 @@ export const generateZkProofClient = async (
     keyClaimName: 'sub',
     maxEpoch: maxEpoch,
   });
-  return (
-    await fetch(proverEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: payload,
-    })
-  ).json();
+  const res = await fetch(proverEndpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: payload,
+  });
+  if (!res.ok)
+    throw new Error('Failed to generate zkProof : ' + res.statusText);
+  return res.json();
 };
 
 export const generateUserSalt = (): string => {
@@ -316,41 +285,4 @@ export const generateUserSalt = (): string => {
   const randomNumber = BigInt(Math.floor(Math.random() * Number(maxNumber)));
 
   return randomNumber.toString();
-};
-
-export const generateZkProof = async (
-  jwt: string,
-  extendedEphemeralPublicKey: string,
-  salt: string,
-  randomness: string
-) => {
-  const proverEndpoint = 'https://prover-dev.mystenlabs.com/v1';
-
-  const saltNumber = BigInt(salt);
-  const saltBase64 = Buffer.from(saltNumber.toString()).toString('base64');
-  const randomnessNumber = BigInt(randomness);
-  const randomnessBase64 = Buffer.from(randomnessNumber.toString()).toString(
-    'base64'
-  );
-  const epochInfo = await getCurrentEpoch();
-  const maxEpoch = Number(epochInfo.epoch) + 2; // this means the ephemeral key will be active for 2 epochs from now.
-
-  const payload = JSON.stringify({
-    jwt,
-    extendedEphemeralPublicKey,
-    salt,
-    jwtRandomness: randomness,
-    keyClaimName: 'sub',
-    maxEpoch: maxEpoch,
-  });
-  console.log('🚀 ~ payload:', payload);
-  return (
-    await fetch(proverEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: payload,
-    })
-  ).json();
 };

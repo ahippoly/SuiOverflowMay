@@ -25,12 +25,14 @@ import {
   buildMultiSigWallet,
   fullAccountToFetchedAccount,
   makeZkLoginFullAccountFromPreparation,
-  restoreAccountPreparation,
   restoreAccountsFromFetchedAccounts,
+} from '@/lib/sui-related/zkLogin';
+import {
+  restoreAccountPreparation,
   restoreFullAccounts,
   saveAccountPreparation,
   saveFullAccountsWithOldsOnes,
-} from '@/lib/sui-related/zkLogin';
+} from '@/lib/sui-related/zkLoginClient';
 
 import {
   addAccount,
@@ -38,6 +40,7 @@ import {
   signIn,
 } from '@/backend/userAccountHandling';
 import { DEFAULT_MAX_EPOCH } from '@/constant/config';
+import { SelectedZkAccountContext } from '@/contexts/selectedZkAccountContext';
 import { ZkLoginAccountsContext } from '@/contexts/zkLoginInfoContext';
 // export const completeZkLoginFlowAfterOauth = async () => {};
 
@@ -50,10 +53,13 @@ const getAndResetUrlToken = () => {
 };
 
 export const useZkLogin = () => {
-  const {
-    zkLoginAccounts: zkLoginInfoByAccounts,
-    setZkLoginAccounts: setZkLoginInfoByAccounts,
-  } = useContext(ZkLoginAccountsContext);
+  const { zkLoginAccounts, setZkLoginAccounts } = useContext(
+    ZkLoginAccountsContext
+  );
+
+  const { selectedZkAccount, setSelectedZkAccount } = useContext(
+    SelectedZkAccountContext
+  );
 
   const prepareOauthConnection = async () => {
     const ephemeralKeyPair = new Ed25519Keypair();
@@ -281,17 +287,16 @@ export const useZkLogin = () => {
           fetchedZkLoginAccounts
         );
         saveFullAccountsWithOldsOnes(restoredAccounts);
+        setZkLoginAccounts((prev) => [...prev, ...restoredAccounts]);
       } else {
         const newAccount = await makeZkLoginFullAccountFromPreparation(
           token,
           zkAccountPreparation
         );
         // register new account
-        await registerNewUser(
-          jwtDecode(token).sub as string,
-          fullAccountToFetchedAccount(newAccount)
-        );
+        await registerNewUser(token, fullAccountToFetchedAccount(newAccount));
         saveFullAccountsWithOldsOnes([newAccount]);
+        setZkLoginAccounts((prev) => [...prev, newAccount]);
       }
     } else {
       // add account
@@ -304,11 +309,12 @@ export const useZkLogin = () => {
         fullAccountToFetchedAccount(newAccount)
       );
       saveFullAccountsWithOldsOnes([newAccount]);
+      setZkLoginAccounts((prev) => [...prev, newAccount]);
     }
   };
 
   return {
-    ...zkLoginInfoByAccounts,
+    ...zkLoginAccounts,
     createMultiSigWallet,
     signTransaction,
     prepareOauthConnection,

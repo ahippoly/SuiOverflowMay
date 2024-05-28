@@ -1,26 +1,9 @@
 'use server';
 
 import { Multisig, User, ZkAccount } from '@prisma/client';
-import { JwtPayload, jwtDecode } from 'jwt-decode';
 
 import prisma from '@/lib/prisma';
-
-const parseJwt = (jwt: string): JwtPayload => {
-  if (!jwt) {
-    throw new Error('JWT not provided');
-  }
-
-  const decodedJwt = jwtDecode(jwt);
-  if (!decodedJwt) {
-    throw new Error('JWT not decoded');
-  }
-
-  if (!decodedJwt.sub) {
-    throw new Error('JWT sub not found');
-  }
-
-  return decodedJwt;
-};
+import { fetchedAccountToZkAccount, parseJwt } from '@/lib/sui-related/zkLogin';
 
 export const getUserFromJwt = async (jwt: string) => {
   const decodedJwt = parseJwt(jwt);
@@ -97,7 +80,7 @@ export const createNewUser = async (newAccount: ZkLoginFetchedAccount) => {
   const user = await prisma.user.create({
     data: {
       zkAccounts: {
-        create: newAccount,
+        create: fetchedAccountToZkAccount(newAccount),
       },
     },
   });
@@ -111,7 +94,7 @@ export const addAccountToUser = async (
 ) => {
   const account = await prisma.zkAccount.create({
     data: {
-      ...newAccount,
+      ...fetchedAccountToZkAccount(newAccount),
       userId: user.id,
     },
   });
