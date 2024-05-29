@@ -71,6 +71,13 @@ export default function RootLayout({
       createTheme({
         palette: {
           mode: prefersDarkMode ? 'dark' : 'light',
+          primary: {
+            main: '#01050e',
+          },
+          background: {
+            default: '#ffffff',
+            paper: '#f5f5f5',
+          },
         },
         components: {
           // Name of the component
@@ -85,9 +92,7 @@ export default function RootLayout({
           },
           MuiButton: {
             styleOverrides: {
-              root: {
-                borderRadius: '25px',
-              },
+              root: {},
             },
           },
           MuiStack: {

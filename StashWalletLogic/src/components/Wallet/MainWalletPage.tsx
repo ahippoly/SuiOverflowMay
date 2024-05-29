@@ -9,7 +9,7 @@ function MainWalletPage() {
   const zkLogin = useZkLogin();
 
   if (zkLogin.useZkLoginState.isInitializing)
-    return <CircularProgress disableShrink />;
+    return <CircularProgress sx={{ my: 'auto' }} disableShrink />;
   if (zkLogin.zkLoginAccounts.length === 0) return <NoWalletFound />;
 
   return (

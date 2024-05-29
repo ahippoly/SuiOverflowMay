@@ -9,6 +9,7 @@ function MainContainer({ children }: { children: React.ReactNode }) {
           p: 4,
           height: ' 680px',
           width: '400px',
+          backgroundColor: 'background.default',
         }}
       >
         {children}

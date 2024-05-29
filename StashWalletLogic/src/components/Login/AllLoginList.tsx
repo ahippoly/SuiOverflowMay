@@ -5,7 +5,7 @@ import LoginWithGoogle from './LoginWithGoogle';
 
 function AllLoginList() {
   return (
-    <Stack>
+    <Stack gap={2}>
       <LoginWithGoogle />
       <LoginWithFacebook />
     </Stack>
