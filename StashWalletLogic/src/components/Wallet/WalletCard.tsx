@@ -1,5 +1,7 @@
-import { Stack, Typography } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import React from 'react';
+
+import { shrinkString } from '@/lib/utils';
 
 function WalletCard({
   statusComponent,
@@ -13,14 +15,28 @@ function WalletCard({
   IconComponent: React.ReactNode;
 }) {
   return (
-    <Stack direction='row'>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 1,
+        padding: 1,
+        backgroundColor: '#f5f5f5',
+        borderRadius: 4,
+      }}
+    >
       {statusComponent}
       {IconComponent}
       <Stack>
-        <Typography>{accountName}</Typography>
-        <Typography>{walletAdress}</Typography>
+        <Typography variant='body1' fontWeight='bold' noWrap>
+          {accountName}
+        </Typography>
+        <Typography variant='body2' noWrap>
+          {shrinkString(walletAdress, 10, 5)}
+        </Typography>
       </Stack>
-    </Stack>
+    </Box>
   );
 }
 

@@ -27,7 +27,7 @@ export default function HomePage() {
       }}
     >
       <Header />
-      <Stack flexGrow={1} justifyContent='center' alignItems='center'>
+      <Stack flexGrow={1} alignItems='center'>
         <MainWalletPage />
       </Stack>
     </Stack>

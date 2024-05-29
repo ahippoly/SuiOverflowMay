@@ -90,6 +90,13 @@ export default function RootLayout({
               },
             },
           },
+          MuiStack: {
+            styleOverrides: {
+              root: {
+                minWidth: 0,
+              },
+            },
+          },
         },
       }),
     [prefersDarkMode]
