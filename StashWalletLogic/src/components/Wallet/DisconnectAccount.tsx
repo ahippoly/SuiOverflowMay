@@ -7,12 +7,12 @@ function DisconnectAccount() {
 
   const handleDisconnect = async () => {
     if (!zkLogin.selectedZkAccount) return;
-    zkLogin.disconnectAccount(zkLogin.selectedZkAccount);
+    zkLogin.removeAccount(zkLogin.selectedZkAccount);
   };
 
   return (
     <Button variant='contained' onClick={handleDisconnect}>
-      Disconnect
+      Remove account
     </Button>
   );
 }

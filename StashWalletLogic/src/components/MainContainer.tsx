@@ -7,7 +7,8 @@ function MainContainer({ children }: { children: React.ReactNode }) {
         elevation={8}
         sx={{
           p: 4,
-          minHeight: '500px',
+          height: ' 680px',
+          width: '400px',
         }}
       >
         {children}

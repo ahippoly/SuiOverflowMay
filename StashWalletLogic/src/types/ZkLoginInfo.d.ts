@@ -82,6 +82,8 @@ declare global {
     isFetchingAccounts: boolean;
     isPromptingTransaction: boolean;
     transactionState: TransactionState;
+    isInitializing: boolean;
+    hasSkippedSecondAccountCreation: boolean;
   }
 
   interface TransactionSignature {

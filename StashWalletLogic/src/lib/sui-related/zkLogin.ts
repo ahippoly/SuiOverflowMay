@@ -44,6 +44,7 @@ export const fetchedAccountToZkAccount = (
   issuer: fetchedAccount.issuer,
   salt: fetchedAccount.salt,
   publicIdentifier: fetchedAccount.publicIdentifier,
+  address: fetchedAccount.address,
 });
 
 export const parseJwt = (jwt: string): JwtPayload => {
@@ -74,28 +75,8 @@ export const fullAccountToFetchedAccount = (
     issuer: fullAccount.issuer,
     publicIdentifier: fullAccount.publicIdentifier,
     type: 'zkPartial',
+    address: fullAccount.address,
   };
-};
-
-export const assembleMultiSigWallet = async (
-  zkLogins: ZkLoginFetchedAccount[],
-  threshold: number
-) => {
-  const publicZkKeys = zkLogins.map(
-    (account) => new ZkLoginPublicIdentifier(account.publicIdentifier)
-  );
-
-  const multiSigPublicKey = MultiSigPublicKey.fromPublicKeys({
-    threshold: threshold,
-    publicKeys: publicZkKeys.map((zkKey) => ({
-      publicKey: zkKey,
-      weight: 1,
-    })),
-  });
-
-  // const multisigAddress = multiSigPublicKey.toSuiAddress();
-
-  return multiSigPublicKey;
 };
 
 export const sendTokens = async (

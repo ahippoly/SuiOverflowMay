@@ -11,6 +11,7 @@ datasource db {
 model ZkAccount {
   sub              String
   publicIdentifier String     @unique
+  address          String     @unique
   email            String
   issuer           String
   salt             String     @id @unique

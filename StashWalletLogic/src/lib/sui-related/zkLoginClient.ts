@@ -68,6 +68,7 @@ export const handleOauthResponse = async () => {
         salt: account.salt,
         sub: account.sub,
         type: 'zkPartial',
+        address: account.address,
       }));
     if (fetchedAccounts.accounts.length > 0) {
       // restore accounts
@@ -125,6 +126,20 @@ export const saveFullAccountsWithOldsOnes = (
 
 export const resetAccountPreparation = () => {
   window.localStorage.removeItem('zkLoginAccountPreparation');
+};
+
+export const saveHasSkippedSecondAccountCreation = () => {
+  window.localStorage.setItem(
+    'hasSkippedSecondAccountCreation',
+    JSON.stringify(true)
+  );
+};
+
+export const restoreHasSkippedSecondAccountCreation = () => {
+  const hasSkipped = window.localStorage.getItem(
+    'hasSkippedSecondAccountCreation'
+  );
+  return hasSkipped ? true : false;
 };
 
 export const restoreAccountPreparation =

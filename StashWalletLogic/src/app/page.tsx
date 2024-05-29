@@ -8,11 +8,10 @@
  * You can override the next-env if the type is important to you
  * @see https://stackoverflow.com/questions/68103844/how-to-override-next-js-svg-module-declaration
  */
+import { Stack } from '@mui/material';
 
-import LoginWithFacebook from '@/components/Login/LoginWithFacebook';
-import LoginWithGoogle from '@/components/Login/LoginWithGoogle';
-import DisconnectAccount from '@/components/Wallet/DisconnectAccount';
-import WalletList from '@/components/Wallet/WalletList';
+import Header from '@/components/General/Header';
+import MainWalletPage from '@/components/Wallet/MainWalletPage';
 
 // !STARTERCONF -> Select !STARTERCONF and CMD + SHIFT + F
 // Before you begin editing, follow all comments with `STARTERCONF`,
@@ -20,20 +19,17 @@ import WalletList from '@/components/Wallet/WalletList';
 
 export default function HomePage() {
   return (
-    <>
-      {/* <Button
-        onClick={async () => {
-          zkLogin.createMultiSigWallet([OauthTypes.google]);
-        }}
-        variant='contained'
-        color='primary'
-      >
-        Create Multisig
-      </Button> */}
-      <LoginWithGoogle />
-      <LoginWithFacebook />
-      <WalletList />
-      <DisconnectAccount />
-    </>
+    <Stack
+      direction='column'
+      spacing={2}
+      sx={{
+        height: '100%',
+      }}
+    >
+      <Header />
+      <Stack flexGrow={1} justifyContent='center' alignItems='center'>
+        <MainWalletPage />
+      </Stack>
+    </Stack>
   );
 }

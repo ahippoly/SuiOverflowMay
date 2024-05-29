@@ -21,6 +21,8 @@ function ZkLoginProvider({ children }: { children: React.ReactNode }) {
     isFetchingAccounts: false,
     isPromptingTransaction: false,
     transactionState: 'idle',
+    hasSkippedSecondAccountCreation: false,
+    isInitializing: true,
   });
 
   const zkLogin = useZkLogin();
@@ -29,11 +31,13 @@ function ZkLoginProvider({ children }: { children: React.ReactNode }) {
     if (location.hash.includes('id_token')) {
       handleOauthResponse().then(() => {
         setZkLoginAccounts(restoreFullAccounts());
+        setZkLoginState((prev) => ({ ...prev, isInitializing: false }));
       });
     } else {
       zkLogin.prepareOauthConnection();
       const storedAccounts = restoreFullAccounts();
       setZkLoginAccounts(storedAccounts);
+      setZkLoginState((prev) => ({ ...prev, isInitializing: false }));
     }
   }, []);
 

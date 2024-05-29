@@ -32,7 +32,23 @@ function LoginButton(props: {
   };
 
   return (
-    <Button onClick={loginOnClick} variant='contained' startIcon={props.icon}>
+    <Button
+      sx={{
+        width: '200px',
+        height: '50px',
+        backgroundColor: 'black',
+        color: 'white',
+        borderRadius: '25px',
+        fontSize: '0.75rem',
+        '&:hover': {
+          backgroundColor: 'white',
+          color: 'black',
+        },
+      }}
+      onClick={loginOnClick}
+      variant='contained'
+      startIcon={props.icon}
+    >
       Sign In with {props.name}
     </Button>
   );

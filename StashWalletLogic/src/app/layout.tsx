@@ -4,7 +4,6 @@ import {
   Box,
   createTheme,
   CssBaseline,
-  Stack,
   ThemeProvider,
   useMediaQuery,
 } from '@mui/material';
@@ -73,6 +72,25 @@ export default function RootLayout({
         palette: {
           mode: prefersDarkMode ? 'dark' : 'light',
         },
+        components: {
+          // Name of the component
+          MuiPaper: {
+            styleOverrides: {
+              // Name of the slot
+              root: {
+                // Some CSS
+                borderRadius: '10px',
+              },
+            },
+          },
+          MuiButton: {
+            styleOverrides: {
+              root: {
+                borderRadius: '25px',
+              },
+            },
+          },
+        },
       }),
     [prefersDarkMode]
   );
@@ -85,28 +103,17 @@ export default function RootLayout({
           <ZkLoginProvider>
             <Box
               sx={{
-                backgroundColor: '#4158D0',
-                backgroundImage:
-                  'linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%)',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
                 height: '100%',
+                backgroundColor: '#a4e2ff',
+                backgroundImage:
+                  'linear-gradient(243deg, #a4e2ff 0%, #ffffff 66%, #ffffff 68%, #AEF7D2 91%)',
               }}
             >
-              <MainContainer>
-                <Stack
-                  direction='column'
-                  spacing={2}
-                  justifyContent='center'
-                  sx={{
-                    height: '100%',
-                  }}
-                >
-                  {children}
-                </Stack>
-              </MainContainer>
+              <MainContainer>{children}</MainContainer>
             </Box>
           </ZkLoginProvider>
         </ThemeProvider>

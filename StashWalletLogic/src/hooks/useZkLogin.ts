@@ -33,10 +33,17 @@ export const useZkLogin = () => {
     UseZkLoginStateContext
   );
 
-  const disconnectAccount = (account: ZkLoginFullAccount) => {
+  const removeAccount = (account: ZkLoginFullAccount) => {
     setZkLoginAccounts((prev) =>
       prev.filter((a) => a.address !== account.address)
     );
+  };
+
+  const skipSecondAccountCreation = async () => {
+    setUseZkLoginState((prev) => ({
+      ...prev,
+      hasSkippedSecondAccountCreation: true,
+    }));
   };
 
   const prepareOauthConnection = async () => {
@@ -83,6 +90,8 @@ export const useZkLogin = () => {
     zkLoginAccounts,
     selectedZkAccount,
     setSelectedZkAccount,
-    disconnectAccount,
+    removeAccount,
+    useZkLoginState,
+    skipSecondAccountCreation,
   };
 };
