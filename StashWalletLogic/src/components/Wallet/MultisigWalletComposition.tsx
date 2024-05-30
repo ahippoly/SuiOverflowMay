@@ -1,4 +1,5 @@
 import { Stack } from '@mui/material';
+
 import WalletCardAdapter from './WalletCardAdapter';
 
 function MultisigWalletComposition({
@@ -7,7 +8,7 @@ function MultisigWalletComposition({
   multisigAccount: MultiSigAccount;
 }) {
   return (
-    <Stack>
+    <Stack gap={2}>
       {multisigAccount.components.map((component) => (
         <WalletCardAdapter key={component.address} walletSource={component} />
       ))}

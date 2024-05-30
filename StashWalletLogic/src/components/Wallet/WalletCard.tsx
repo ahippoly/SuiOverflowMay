@@ -1,6 +1,7 @@
 import { Card, Stack, Typography } from '@mui/material';
 import React from 'react';
 
+import { useZkLogin } from '@/hooks/useZkLogin';
 import { shrinkString } from '@/lib/utils';
 
 function WalletCard({
@@ -9,6 +10,7 @@ function WalletCard({
   walletAdress,
   IconComponent,
   selectable,
+  walletAccount,
   clickCallback,
 }: {
   statusComponent?: React.ReactNode;
@@ -16,12 +18,16 @@ function WalletCard({
   walletAdress: string;
   IconComponent: React.ReactNode;
   selectable?: boolean;
-  clickCallback?: () => void;
+  walletAccount: WalletAccount;
+  clickCallback?: (walletAccount: WalletAccount) => void;
 }) {
+  const zkLogin = useZkLogin();
   return (
     <Card
       onClick={() => {
-        console.log('clicked');
+        if (selectable === false) return;
+        clickCallback && clickCallback(walletAccount);
+        zkLogin.setSelectedAccount(walletAccount);
       }}
       elevation={0}
       sx={{

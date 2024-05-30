@@ -3,13 +3,25 @@
 import { createContext } from 'react';
 
 export const SelectedZkAccountContext = createContext<{
-  selectedZkAccount: ZkLoginFullAccount | undefined;
-  setSelectedZkAccount: React.Dispatch<
-    React.SetStateAction<ZkLoginFullAccount | undefined>
+  selectedAccount: WalletAccount | undefined;
+  setSelectedAccount: React.Dispatch<
+    React.SetStateAction<WalletAccount | undefined>
   >;
 }>({
-  selectedZkAccount: undefined,
-  setSelectedZkAccount: (prev) => {
+  selectedAccount: undefined,
+  setSelectedAccount: (prev) => {
+    return prev;
+  },
+});
+
+export const ActiveAccountContext = createContext<{
+  activeAccount: WalletAccount | undefined;
+  setActiveAccount: React.Dispatch<
+    React.SetStateAction<WalletAccount | undefined>
+  >;
+}>({
+  activeAccount: undefined,
+  setActiveAccount: (prev) => {
     return prev;
   },
 });

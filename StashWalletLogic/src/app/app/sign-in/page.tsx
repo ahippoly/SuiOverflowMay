@@ -10,6 +10,7 @@ import {
 } from '@/lib/sui-related/zkLoginClient';
 
 import AccountAddedPage from '@/components/PageComponents/AccountAddedPage';
+import AccountRestoredPage from '@/components/PageComponents/AccountRestoredPage';
 import LoadingPage from '@/components/PageComponents/LoadingPage';
 import NewUserPage from '@/components/PageComponents/NewUserPage';
 
@@ -51,6 +52,12 @@ function OauthHandling() {
     // return <NewUserPage newZkAccount={accounts[0]} />;
     return <AccountAddedPage accountAdded={accounts[0]} />;
   }
+
+  if (loginStatus === 'restoreAccounts') {
+    // return <NewUserPage newZkAccount={accounts[0]} />;
+    return <AccountRestoredPage restoredAccounts={accounts} />;
+  }
+
   return null;
 }
 

@@ -6,8 +6,8 @@ function DisconnectAccount() {
   const zkLogin = useZkLogin();
 
   const handleDisconnect = async () => {
-    if (!zkLogin.selectedZkAccount) return;
-    zkLogin.removeAccount(zkLogin.selectedZkAccount);
+    if (!zkLogin.selectedAccount) return;
+    zkLogin.removeAccount(zkLogin.selectedAccount);
   };
 
   return (

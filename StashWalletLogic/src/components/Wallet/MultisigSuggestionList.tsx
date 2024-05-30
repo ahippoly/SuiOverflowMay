@@ -7,8 +7,10 @@ import WalletCardAdapter from './WalletCardAdapter';
 
 function MultisigSuggestionList({
   zkAccounts,
+  clickCallback,
 }: {
   zkAccounts: ZkLoginFetchedAccount[];
+  clickCallback?: (walletAccount: WalletAccount) => void;
 }) {
   const [multisigAccounts, setMultisigAccounts] = useState<MultiSigAccount[]>(
     []
@@ -23,7 +25,12 @@ function MultisigSuggestionList({
   return (
     <Stack gap={2} width='100%'>
       {multisigAccounts.map((multisig) => (
-        <WalletCardAdapter key={multisig.address} walletSource={multisig} />
+        <WalletCardAdapter
+          key={multisig.address}
+          walletSource={multisig}
+          clickCallback={clickCallback}
+          isSelectable
+        />
       ))}
     </Stack>
   );

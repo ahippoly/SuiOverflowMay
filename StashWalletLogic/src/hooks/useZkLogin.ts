@@ -1,21 +1,11 @@
 'use client';
 
-import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
-import {
-  generateNonce,
-  generateRandomness,
-  getExtendedEphemeralPublicKey,
-} from '@mysten/zklogin';
 import { useContext } from 'react';
 
-import { getCurrentEpoch } from '@/lib/sui-related/utils';
 import {
-  restoreAccountPreparation,
-  saveAccountPreparation,
-} from '@/lib/sui-related/zkLoginClient';
-
-import { DEFAULT_MAX_EPOCH } from '@/constant/config';
-import { SelectedZkAccountContext } from '@/contexts/selectedZkAccountContext';
+  ActiveAccountContext,
+  SelectedZkAccountContext,
+} from '@/contexts/selectedZkAccountContext';
 import { UseZkLoginStateContext } from '@/contexts/useZkLoginStateContext';
 import { ZkLoginAccountsContext } from '@/contexts/zkLoginInfoContext';
 // export const completeZkLoginFlowAfterOauth = async () => {};
@@ -25,7 +15,8 @@ export const useZkLogin = () => {
     ZkLoginAccountsContext
   );
 
-  const { selectedZkAccount, setSelectedZkAccount } = useContext(
+  const { activeAccount, setActiveAccount } = useContext(ActiveAccountContext);
+  const { selectedAccount, setSelectedAccount } = useContext(
     SelectedZkAccountContext
   );
 
@@ -33,10 +24,14 @@ export const useZkLogin = () => {
     UseZkLoginStateContext
   );
 
-  const removeAccount = (account: ZkLoginFullAccount) => {
-    setZkLoginAccounts((prev) =>
-      prev.filter((a) => a.address !== account.address)
-    );
+  const removeAccount = (account: WalletAccount) => {
+    if (account.type == 'zkFull') {
+      setZkLoginAccounts((prev) =>
+        prev.filter(
+          (a) => a.address !== (account as ZkLoginFullAccount).address
+        )
+      );
+    }
   };
 
   const skipSecondAccountCreation = async () => {
@@ -51,8 +46,10 @@ export const useZkLogin = () => {
   return {
     zkLoginAccounts,
     setZkLoginAccounts,
-    selectedZkAccount,
-    setSelectedZkAccount,
+    selectedAccount,
+    setSelectedAccount,
+    activeAccount,
+    setActiveAccount,
     removeAccount,
     useZkLoginState,
     setUseZkLoginState,

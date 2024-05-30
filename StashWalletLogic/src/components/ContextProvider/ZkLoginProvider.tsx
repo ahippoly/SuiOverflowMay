@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 
-import { useZkLogin } from '@/hooks/useZkLogin';
 import { prepareOauthConnection } from '@/lib/sui-related/zkLogin';
 import { restoreFullAccounts } from '@/lib/sui-related/zkLoginClient';
 
-import { SelectedZkAccountContext } from '@/contexts/selectedZkAccountContext';
+import {
+  ActiveAccountContext,
+  SelectedZkAccountContext,
+} from '@/contexts/selectedZkAccountContext';
 import { UseZkLoginStateContext } from '@/contexts/useZkLoginStateContext';
 import { ZkLoginAccountsContext } from '@/contexts/zkLoginInfoContext';
 
@@ -14,7 +16,8 @@ function ZkLoginProvider({ children }: { children: React.ReactNode }) {
   const [zkLoginAccounts, setZkLoginAccounts] = useState<ZkLoginFullAccount[]>(
     []
   );
-  const [selectedAccount, setSelectedAccount] = useState<ZkLoginFullAccount>();
+  const [activeAccount, setActiveAccount] = useState<WalletAccount>();
+  const [selectedAccount, setSelectedAccount] = useState<WalletAccount>();
   const [zkLoginState, setZkLoginState] = useState<UseZkLoginState>({
     isFetchingAccounts: false,
     isPromptingTransaction: false,
@@ -22,8 +25,6 @@ function ZkLoginProvider({ children }: { children: React.ReactNode }) {
     hasSkippedSecondAccountCreation: false,
     isInitializing: true,
   });
-
-  const zkLogin = useZkLogin();
 
   useEffect(() => {
     if (
@@ -38,28 +39,35 @@ function ZkLoginProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <SelectedZkAccountContext.Provider
+    <ActiveAccountContext.Provider
       value={{
-        selectedZkAccount: selectedAccount,
-        setSelectedZkAccount: setSelectedAccount,
+        activeAccount: activeAccount,
+        setActiveAccount: setActiveAccount,
       }}
     >
-      <ZkLoginAccountsContext.Provider
+      <SelectedZkAccountContext.Provider
         value={{
-          zkLoginAccounts: zkLoginAccounts,
-          setZkLoginAccounts: setZkLoginAccounts,
+          selectedAccount: selectedAccount,
+          setSelectedAccount: setSelectedAccount,
         }}
       >
-        <UseZkLoginStateContext.Provider
+        <ZkLoginAccountsContext.Provider
           value={{
-            useZkLoginState: zkLoginState,
-            setUseZkLoginState: setZkLoginState,
+            zkLoginAccounts: zkLoginAccounts,
+            setZkLoginAccounts: setZkLoginAccounts,
           }}
         >
-          {children}
-        </UseZkLoginStateContext.Provider>
-      </ZkLoginAccountsContext.Provider>
-    </SelectedZkAccountContext.Provider>
+          <UseZkLoginStateContext.Provider
+            value={{
+              useZkLoginState: zkLoginState,
+              setUseZkLoginState: setZkLoginState,
+            }}
+          >
+            {children}
+          </UseZkLoginStateContext.Provider>
+        </ZkLoginAccountsContext.Provider>
+      </SelectedZkAccountContext.Provider>
+    </ActiveAccountContext.Provider>
   );
 }
 
