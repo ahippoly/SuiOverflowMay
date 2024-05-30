@@ -3,10 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { useZkLogin } from '@/hooks/useZkLogin';
-import {
-  handleOauthResponse,
-  restoreFullAccounts,
-} from '@/lib/sui-related/zkLoginClient';
+import { restoreFullAccounts } from '@/lib/sui-related/zkLoginClient';
 
 import { SelectedZkAccountContext } from '@/contexts/selectedZkAccountContext';
 import { UseZkLoginStateContext } from '@/contexts/useZkLoginStateContext';
@@ -28,12 +25,7 @@ function ZkLoginProvider({ children }: { children: React.ReactNode }) {
   const zkLogin = useZkLogin();
 
   useEffect(() => {
-    if (location.hash.includes('id_token')) {
-      handleOauthResponse().then(() => {
-        setZkLoginAccounts(restoreFullAccounts());
-        setZkLoginState((prev) => ({ ...prev, isInitializing: false }));
-      });
-    } else {
+    if (!location.hash.includes('id_token')) {
       zkLogin.prepareOauthConnection();
       const storedAccounts = restoreFullAccounts();
       setZkLoginAccounts(storedAccounts);

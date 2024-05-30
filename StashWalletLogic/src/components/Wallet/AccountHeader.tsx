@@ -1,4 +1,5 @@
 import { Button, Stack } from '@mui/material';
+import Link from 'next/link';
 
 import { useZkLogin } from '@/hooks/useZkLogin';
 
@@ -14,9 +15,11 @@ function AccountHeader() {
         <Button variant='contained' color='primary'>
           Switch account
         </Button>
-        <Button variant='contained' color='primary'>
-          Add account
-        </Button>
+        <Link href='/app/add-account'>
+          <Button variant='contained' color='primary'>
+            Add account
+          </Button>
+        </Link>
       </Stack>
     </Stack>
   );

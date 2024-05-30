@@ -10,8 +10,7 @@
  */
 import { Stack } from '@mui/material';
 
-import Header from '@/components/General/Header';
-import MainWalletPage from '@/components/Wallet/MainWalletPage';
+import MainWalletPage from '@/components/PageComponents/MainWalletPage';
 
 // !STARTERCONF -> Select !STARTERCONF and CMD + SHIFT + F
 // Before you begin editing, follow all comments with `STARTERCONF`,
@@ -19,17 +18,8 @@ import MainWalletPage from '@/components/Wallet/MainWalletPage';
 
 export default function HomePage() {
   return (
-    <Stack
-      direction='column'
-      spacing={2}
-      sx={{
-        height: '100%',
-      }}
-    >
-      <Header />
-      <Stack flexGrow={1} alignItems='center'>
-        <MainWalletPage />
-      </Stack>
+    <Stack flexGrow={1} alignItems='center'>
+      <MainWalletPage />
     </Stack>
   );
 }

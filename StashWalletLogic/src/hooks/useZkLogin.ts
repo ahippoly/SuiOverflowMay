@@ -80,18 +80,15 @@ export const useZkLogin = () => {
 
   // TODO: send token with active account
 
-  const getAllAccounts = (): WalletAccount[] => {
-    return zkLoginAccounts;
-  };
-
   return {
     prepareOauthConnection,
-    getAllAccounts,
     zkLoginAccounts,
+    setZkLoginAccounts,
     selectedZkAccount,
     setSelectedZkAccount,
     removeAccount,
     useZkLoginState,
+    setUseZkLoginState,
     skipSecondAccountCreation,
   };
 };

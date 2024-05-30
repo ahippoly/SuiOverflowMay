@@ -1,17 +1,15 @@
-import GppMaybeIcon from '@mui/icons-material/GppMaybe';
-
-import OauthProviderIcon from '../General/OauthProviderIcon';
-import WalletCard from './WalletCard';
+import MultisigWalletCard from './MultisigWallet';
+import ZkWalletCard from './ZkWalletCard';
 
 function WalletCardAdapter({ walletSource }: { walletSource: WalletAccount }) {
   if (walletSource.type === 'zkFull') {
     const wallet = walletSource as ZkLoginFullAccount;
-    return WalletCard({
-      statusComponent: <GppMaybeIcon />,
-      accountName: wallet.email,
-      walletAdress: wallet.address,
-      IconComponent: <OauthProviderIcon issuer={wallet.issuer} />,
-    });
+    return ZkWalletCard({ zkAccount: wallet });
+  }
+
+  if (walletSource.type === 'multisig') {
+    const wallet = walletSource as MultiSigAccount;
+    return MultisigWalletCard({ multisigWallet: wallet });
   }
 }
 

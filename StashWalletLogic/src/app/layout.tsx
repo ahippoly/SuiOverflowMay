@@ -4,6 +4,7 @@ import {
   Box,
   createTheme,
   CssBaseline,
+  Stack,
   ThemeProvider,
   useMediaQuery,
 } from '@mui/material';
@@ -14,6 +15,7 @@ import '@/styles/globals.css';
 import '@/styles/colors.css';
 
 import ZkLoginProvider from '@/components/ContextProvider/ZkLoginProvider';
+import Header from '@/components/General/Header';
 import MainContainer from '@/components/MainContainer';
 
 // !STARTERCONF Change these default meta
@@ -125,7 +127,18 @@ export default function RootLayout({
                   'linear-gradient(243deg, #a4e2ff 0%, #ffffff 66%, #ffffff 68%, #AEF7D2 91%)',
               }}
             >
-              <MainContainer>{children}</MainContainer>
+              <MainContainer>
+                <Stack
+                  direction='column'
+                  spacing={2}
+                  sx={{
+                    height: '100%',
+                  }}
+                >
+                  <Header />
+                  {children}
+                </Stack>
+              </MainContainer>
             </Box>
           </ZkLoginProvider>
         </ThemeProvider>

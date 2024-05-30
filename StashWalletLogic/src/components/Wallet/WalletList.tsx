@@ -1,6 +1,6 @@
 import { useZkLogin } from '@/hooks/useZkLogin';
 
-import ZkWallet from './ZkWallet';
+import ZkWalletCard from './ZkWalletCard';
 
 function WalletList() {
   const zkLogin = useZkLogin();
@@ -12,7 +12,7 @@ function WalletList() {
   ) as ZkLoginFullAccount[];
 
   return allZkWallets.map((account) => (
-    <ZkWallet zkAccount={account} key={account.address} />
+    <ZkWalletCard zkAccount={account} key={account.address} />
   ));
 }
 

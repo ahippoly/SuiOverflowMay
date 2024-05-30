@@ -3,16 +3,22 @@ import GoogleIcon from '@mui/icons-material/Google';
 import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
 
 import { getOauthTypeFromIssuer } from '@/lib/sui-related/zkLogin';
-function OauthProviderIcon({ issuer }: { issuer: string }) {
+function OauthProviderIcon({
+  issuer,
+  color,
+}: {
+  issuer: string;
+  color?: string;
+}) {
   const provider = getOauthTypeFromIssuer(issuer);
 
   switch (provider) {
     case 'google':
-      return <GoogleIcon />;
+      return <GoogleIcon sx={{ color }} />;
     case 'facebook':
-      return <FacebookIcon />;
+      return <FacebookIcon sx={{ color }} />;
     default:
-      return <QuestionMarkIcon />;
+      return <QuestionMarkIcon sx={{ color }} />;
   }
 }
 

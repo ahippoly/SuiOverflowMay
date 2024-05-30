@@ -34,15 +34,10 @@ function LoginButton(props: {
   return (
     <Button
       sx={{
-        width: '200px',
-        height: '50px',
-        backgroundColor: 'black',
-        color: 'white',
         borderRadius: '25px',
-        fontSize: '0.75rem',
         '&:hover': {
-          backgroundColor: 'white',
-          color: 'black',
+          backgroundColor: 'background.default',
+          color: 'primary.main',
         },
       }}
       onClick={loginOnClick}
