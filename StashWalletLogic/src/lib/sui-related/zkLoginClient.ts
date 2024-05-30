@@ -12,6 +12,7 @@ import {
   fullAccountToFetchedAccount,
   makeZkLoginFullAccountFromPreparation,
   parseJwt,
+  prepareOauthConnection,
   restoreAccountsFromFetchedAccounts,
 } from './zkLogin';
 
@@ -112,7 +113,7 @@ export const handleOauthResponse = async (): Promise<{
       fullAccountToFetchedAccount(newAccount)
     );
     saveFullAccountsWithOldsOnes([newAccount]);
-    resetAccountPreparation();
+    refreshAccountPreparation();
     return {
       status: 'addAccount',
       accounts: [newAccount],
@@ -138,6 +139,11 @@ export const saveFullAccountsWithOldsOnes = (
 
 export const resetAccountPreparation = () => {
   window.localStorage.removeItem('zkLoginAccountPreparation');
+};
+
+export const refreshAccountPreparation = async () => {
+  resetAccountPreparation();
+  return await prepareOauthConnection();
 };
 
 export const saveHasSkippedSecondAccountCreation = () => {

@@ -8,14 +8,21 @@ function WalletCard({
   accountName,
   walletAdress,
   IconComponent,
+  selectable,
+  clickCallback,
 }: {
-  statusComponent: React.ReactNode;
+  statusComponent?: React.ReactNode;
   accountName: string;
   walletAdress: string;
   IconComponent: React.ReactNode;
+  selectable?: boolean;
+  clickCallback?: () => void;
 }) {
   return (
     <Card
+      onClick={() => {
+        console.log('clicked');
+      }}
       elevation={0}
       sx={{
         display: 'flex',
@@ -25,6 +32,7 @@ function WalletCard({
         padding: 1,
         borderRadius: 4,
         width: '100%',
+        cursor: `${selectable ? 'pointer' : 'unset'}`,
       }}
     >
       {statusComponent}

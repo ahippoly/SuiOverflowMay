@@ -14,8 +14,8 @@ function NewUserPage({ newZkAccount }: { newZkAccount: ZkLoginFullAccount }) {
       <Typography variant='h5'>Welcome aboard</Typography>
       <WalletCardAdapter walletSource={newZkAccount} />
       <Typography textAlign='center' variant='body1'>
-        We recommand you to sign in with an other account to make your wallet
-        safer
+        We recommand you to sign in with an other account to ensure the recovery
+        of yours assets
       </Typography>
       <AllLoginList />
       <Button variant='outlined'>Skip</Button>

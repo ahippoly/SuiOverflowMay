@@ -46,42 +46,9 @@ export const useZkLogin = () => {
     }));
   };
 
-  const prepareOauthConnection = async () => {
-    const existingPreparation = restoreAccountPreparation();
-    if (existingPreparation) return existingPreparation;
-
-    const ephemeralKeyPair = new Ed25519Keypair();
-    const randomness = generateRandomness();
-    const maxEpoch =
-      Number((await getCurrentEpoch()).epoch) + DEFAULT_MAX_EPOCH;
-
-    const extendedEphemeralPublicKey = getExtendedEphemeralPublicKey(
-      ephemeralKeyPair.getPublicKey()
-    );
-
-    const nonce = await generateNonce(
-      ephemeralKeyPair.getPublicKey(),
-      maxEpoch,
-      randomness
-    );
-
-    const newZkLoginInfo: ZkLoginAccountPreparation = {
-      ephemeralPrivateKey: ephemeralKeyPair.getSecretKey(),
-      ephemeralPublicKey: ephemeralKeyPair.getPublicKey().toBase64(),
-      ephemeralExtendedPublicKey: extendedEphemeralPublicKey,
-      randomness,
-      nonce,
-      maxEpoch: maxEpoch.toString(),
-    };
-
-    saveAccountPreparation(newZkLoginInfo);
-    return newZkLoginInfo;
-  };
-
   // TODO: send token with active account
 
   return {
-    prepareOauthConnection,
     zkLoginAccounts,
     setZkLoginAccounts,
     selectedZkAccount,

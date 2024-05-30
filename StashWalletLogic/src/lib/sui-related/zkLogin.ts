@@ -12,13 +12,26 @@ import {
   toZkLoginPublicIdentifier,
   ZkLoginPublicIdentifier,
 } from '@mysten/sui.js/zklogin';
-import { genAddressSeed, generateNonce, jwtToAddress } from '@mysten/zklogin';
+import {
+  genAddressSeed,
+  generateNonce,
+  generateRandomness,
+  getExtendedEphemeralPublicKey,
+  jwtToAddress,
+} from '@mysten/zklogin';
 import { ZkAccount } from '@prisma/client';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 
 import { getCurrentEpoch } from '@/lib/sui-related/utils';
 
+import { DEFAULT_MAX_EPOCH } from '@/constant/config';
 import { OauthTypes } from '@/enums/OauthTypes.enum';
+
+import { forAllCombinations } from '../utils';
+import {
+  restoreAccountPreparation,
+  saveAccountPreparation,
+} from './zkLoginClient';
 
 export const generateZkLoginNonce = async (
   randomness: string,
@@ -252,6 +265,26 @@ export const createMultiSigFromFetchedAccounts = async (
   return newMultiSigAccount;
 };
 
+export const generateRandomSuiAddress = () => {
+  return '0x' + Math.floor(Math.random() * 10 ** 12).toString(16);
+};
+
+export const createMockedMultiSigFromFetchedAccounts = async (
+  zkAccounts: ZkLoginFetchedAccount[],
+  threshold: number
+): Promise<MultiSigAccount> => {
+  const newMultiSigAccount: MultiSigAccount = {
+    type: 'multisig',
+    address: generateRandomSuiAddress(),
+    publicKey: '',
+    components: zkAccounts,
+    activeAccounts: [],
+    treshold: threshold,
+  };
+
+  return newMultiSigAccount;
+};
+
 export const makeZkLoginFullAccountFromPreparation = async (
   jwt: string,
   zkLoginPreparation: ZkLoginAccountPreparation
@@ -274,13 +307,14 @@ export const makeZkLoginFullAccountFromPreparation = async (
   );
   const pkZklogin = toZkLoginPublicIdentifier(addressSeed, decodedJwt.iss);
 
-  const zkProof = await generateZkProof(
-    jwt,
-    zkLoginPreparation.ephemeralExtendedPublicKey,
-    salt,
-    zkLoginPreparation.randomness,
-    zkLoginPreparation.maxEpoch
-  );
+  // const zkProof = await generateZkProof(
+  //   jwt,
+  //   zkLoginPreparation.ephemeralExtendedPublicKey,
+  //   salt,
+  //   zkLoginPreparation.randomness,
+  //   zkLoginPreparation.maxEpoch
+  // );
+  const zkProof = undefined;
 
   return {
     type: 'zkFull',
@@ -422,4 +456,56 @@ export const executeTransaction = async (
     transactionBlock: transactionBytes,
     signature: signature,
   });
+};
+
+export const prepareOauthConnection = async () => {
+  const existingPreparation = restoreAccountPreparation();
+  if (existingPreparation) return existingPreparation;
+
+  const ephemeralKeyPair = new Ed25519Keypair();
+  const randomness = generateRandomness();
+  const maxEpoch = Number((await getCurrentEpoch()).epoch) + DEFAULT_MAX_EPOCH;
+
+  const extendedEphemeralPublicKey = getExtendedEphemeralPublicKey(
+    ephemeralKeyPair.getPublicKey()
+  );
+
+  const nonce = await generateNonce(
+    ephemeralKeyPair.getPublicKey(),
+    maxEpoch,
+    randomness
+  );
+
+  const newZkLoginInfo: ZkLoginAccountPreparation = {
+    ephemeralPrivateKey: ephemeralKeyPair.getSecretKey(),
+    ephemeralPublicKey: ephemeralKeyPair.getPublicKey().toBase64(),
+    ephemeralExtendedPublicKey: extendedEphemeralPublicKey,
+    randomness,
+    nonce,
+    maxEpoch: maxEpoch.toString(),
+  };
+
+  saveAccountPreparation(newZkLoginInfo);
+  return newZkLoginInfo;
+};
+
+export const buildMultisigSuggestions = async (
+  zkAccounts: ZkLoginFetchedAccount[]
+) => {
+  const suggestedMultisigs: MultiSigAccount[] = [];
+
+  const compositions: ZkLoginFetchedAccount[][] = forAllCombinations(
+    zkAccounts,
+    2
+  );
+
+  for (const composition of compositions) {
+    const suggestedMultisig = await createMockedMultiSigFromFetchedAccounts(
+      composition,
+      2
+    );
+    suggestedMultisigs.push(suggestedMultisig);
+  }
+
+  return suggestedMultisigs;
 };

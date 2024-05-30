@@ -1,6 +1,8 @@
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import { Stack } from '@mui/material';
 
+import { getOauthTypeFromIssuer } from '@/lib/sui-related/zkLogin';
+
 import CircledIcon from '../General/CircledIcon';
 import OauthProviderIcon from '../General/OauthProviderIcon';
 import WalletCard from './WalletCard';
@@ -10,7 +12,7 @@ function MultisigWalletCard({
   multisigWallet: MultiSigAccount;
 }) {
   const walletName = multisigWallet.components
-    .map((component) => component.issuer)
+    .map((component) => getOauthTypeFromIssuer(component.issuer))
     .join(' ');
 
   return WalletCard({

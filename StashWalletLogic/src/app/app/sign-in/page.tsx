@@ -1,5 +1,6 @@
 'use client';
 
+import { Stack } from '@mui/material';
 import { useEffect, useState } from 'react';
 
 import { useZkLogin } from '@/hooks/useZkLogin';
@@ -8,6 +9,8 @@ import {
   restoreFullAccounts,
 } from '@/lib/sui-related/zkLoginClient';
 
+import AccountAddedPage from '@/components/PageComponents/AccountAddedPage';
+import LoadingPage from '@/components/PageComponents/LoadingPage';
 import NewUserPage from '@/components/PageComponents/NewUserPage';
 
 function OauthHandling() {
@@ -33,21 +36,20 @@ function OauthHandling() {
     }
   }, []);
 
-  // if (isInitializing)
-  //   return (
-  //     <Stack flexGrow={1} justifyContent='center' alignItems='center'>
-  //       <LoadingPage text='Processing your account ...' />
-  //     </Stack>
-  //   );
+  if (isInitializing)
+    return (
+      <Stack flexGrow={1} justifyContent='center' alignItems='center'>
+        <LoadingPage text='Processing your account ...' />
+      </Stack>
+    );
 
   if (loginStatus === 'registerNewAccount') {
-    const storedAccounts = restoreFullAccounts();
-    return <NewUserPage newZkAccount={storedAccounts[0]} />;
+    return <NewUserPage newZkAccount={accounts[0]} />;
   }
 
   if (loginStatus === 'addAccount') {
-    return <NewUserPage newZkAccount={accounts[0]} />;
-    // return <AccountAddedPage accountAdded={accounts[0]} />;
+    // return <NewUserPage newZkAccount={accounts[0]} />;
+    return <AccountAddedPage accountAdded={accounts[0]} />;
   }
   return null;
 }
