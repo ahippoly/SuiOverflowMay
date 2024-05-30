@@ -1,7 +1,12 @@
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, Stack, Typography } from '@mui/material';
 
-function LoadingPage() {
-  return <CircularProgress sx={{ my: 'auto' }} disableShrink />;
+function LoadingPage({ text }: { text?: string }) {
+  return (
+    <Stack justifyContent='center' alignItems='center' gap={2}>
+      <CircularProgress sx={{ my: 'auto' }} disableShrink />
+      {text && <Typography variant='body1'>{text}</Typography>}
+    </Stack>
+  );
 }
 
 export default LoadingPage;

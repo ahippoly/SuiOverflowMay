@@ -24,6 +24,7 @@ function WalletCard({
         gap: 1,
         padding: 1,
         borderRadius: 4,
+        width: '100%',
       }}
     >
       {statusComponent}

@@ -213,7 +213,7 @@ export const restoreAccountsFromFetchedAccounts = async (
   return restoredAccounts;
 };
 
-export const buildMultiSigWallet = async (
+export const buildMultiSigPublicKey = async (
   zkLogins: ZkLoginFetchedAccount[],
   threshold: number
 ) => {
@@ -232,6 +232,24 @@ export const buildMultiSigWallet = async (
   // const multisigAddress = multiSigPublicKey.toSuiAddress();
 
   return multiSigPublicKey;
+};
+
+export const createMultiSigFromFetchedAccounts = async (
+  zkAccounts: ZkLoginFetchedAccount[],
+  threshold: number
+): Promise<MultiSigAccount> => {
+  const multisigPublicKey = await buildMultiSigPublicKey(zkAccounts, threshold);
+
+  const newMultiSigAccount: MultiSigAccount = {
+    type: 'multisig',
+    address: multisigPublicKey.toSuiAddress(),
+    publicKey: multisigPublicKey.toBase64(),
+    components: zkAccounts,
+    activeAccounts: [],
+    treshold: threshold,
+  };
+
+  return newMultiSigAccount;
 };
 
 export const makeZkLoginFullAccountFromPreparation = async (
@@ -331,7 +349,7 @@ export const createMultiSigSignature = async (
   multisigAccount: MultiSigAccount,
   transactionBlock: TransactionBlock
 ): Promise<TransactionSignature> => {
-  const multisigPublicKey = await buildMultiSigWallet(
+  const multisigPublicKey = await buildMultiSigPublicKey(
     multisigAccount.components,
     multisigAccount.treshold
   );

@@ -51,7 +51,10 @@ const getAndResetUrlToken = () => {
   return token;
 };
 
-export const handleOauthResponse = async () => {
+export const handleOauthResponse = async (): Promise<{
+  status: loginStatus;
+  accounts: WalletAccount[];
+}> => {
   const token = getAndResetUrlToken();
   const zkAccountPreparation = restoreAccountPreparation();
   if (!zkAccountPreparation) throw new Error('no account preparation found');
@@ -79,7 +82,10 @@ export const handleOauthResponse = async () => {
       );
       saveFullAccountsWithOldsOnes(restoredAccounts);
       resetAccountPreparation();
-      return restoredAccounts;
+      return {
+        status: 'restoreAccounts',
+        accounts: restoredAccounts,
+      };
     } else {
       const newAccount = await makeZkLoginFullAccountFromPreparation(
         token,
@@ -89,7 +95,10 @@ export const handleOauthResponse = async () => {
       await registerNewUser(token, fullAccountToFetchedAccount(newAccount));
       saveFullAccountsWithOldsOnes([newAccount]);
       resetAccountPreparation();
-      return [newAccount];
+      return {
+        status: 'registerNewAccount',
+        accounts: [newAccount],
+      };
     }
   } else {
     // add account
@@ -104,7 +113,10 @@ export const handleOauthResponse = async () => {
     );
     saveFullAccountsWithOldsOnes([newAccount]);
     resetAccountPreparation();
-    return [newAccount];
+    return {
+      status: 'addAccount',
+      accounts: [newAccount],
+    };
   }
 };
 

@@ -25,7 +25,10 @@ function ZkLoginProvider({ children }: { children: React.ReactNode }) {
   const zkLogin = useZkLogin();
 
   useEffect(() => {
-    if (!location.hash.includes('id_token')) {
+    if (
+      !location.hash.includes('id_token') &&
+      !location.pathname.includes('/app/sign-in')
+    ) {
       zkLogin.prepareOauthConnection();
       const storedAccounts = restoreFullAccounts();
       setZkLoginAccounts(storedAccounts);

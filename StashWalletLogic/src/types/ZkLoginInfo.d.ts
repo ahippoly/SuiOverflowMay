@@ -57,6 +57,8 @@ declare global {
     type: WalletType;
   }
 
+  type loginStatus = 'restoreAccounts' | 'registerNewAccount' | 'addAccount';
+
   type ZkLoginFetchedAccount = Omit<ZkAccount, 'userId'> &
     WalletAccount & { type: 'zkPartial' };
   interface ZkLoginFullAccount extends WalletAccount {

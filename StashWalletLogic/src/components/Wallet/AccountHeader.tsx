@@ -12,11 +12,11 @@ function AccountHeader() {
     <Stack maxWidth={360} gap={2}>
       <WalletCardAdapter walletSource={zkLogin.zkLoginAccounts[0]} />
       <Stack direction='row' gap={2}>
-        <Button variant='contained' color='primary'>
+        <Button variant='text' color='primary'>
           Switch account
         </Button>
         <Link href='/app/add-account'>
-          <Button variant='contained' color='primary'>
+          <Button variant='text' color='primary'>
             Add account
           </Button>
         </Link>
