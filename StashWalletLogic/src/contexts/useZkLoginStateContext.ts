@@ -10,6 +10,7 @@ export const UseZkLoginStateContext = createContext<{
     transactionState: 'idle',
     isInitializing: false,
     hasSkippedSecondAccountCreation: false,
+    activeAccountSuiCoins: 0,
   },
   setUseZkLoginState: (prev) => {
     return prev;

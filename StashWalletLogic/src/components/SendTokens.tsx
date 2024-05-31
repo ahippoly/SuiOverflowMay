@@ -1,6 +1,18 @@
 import { Button, Paper, Stack, Typography } from '@mui/material';
+import { getFaucetHost, requestSuiFromFaucetV0 } from '@mysten/sui.js/faucet';
+
+import { useZkLogin } from '@/hooks/useZkLogin';
 
 function SendTokens() {
+  const zkLogin = useZkLogin();
+
+  const getFaucetToken = async () => {
+    await requestSuiFromFaucetV0({
+      host: getFaucetHost('devnet'),
+      recipient: zkLogin.activeAccount?.address || '',
+    });
+  };
+
   return (
     <Paper
       elevation={0}
@@ -10,7 +22,9 @@ function SendTokens() {
       }}
     >
       <Stack gap={2} alignItems='center'>
-        <Typography variant='h4'>10 SUI</Typography>
+        <Typography variant='h4'>
+          {zkLogin.useZkLoginState.activeAccountSuiCoins} SUI
+        </Typography>
         <Stack
           gap={2}
           direction='row'
@@ -19,6 +33,14 @@ function SendTokens() {
         >
           <Button variant='contained'>Send</Button>
           <Button variant='contained'>Swap</Button>
+          <Button
+            variant='contained'
+            onClick={() => {
+              getFaucetToken();
+            }}
+          >
+            Faucet
+          </Button>
         </Stack>
       </Stack>
     </Paper>

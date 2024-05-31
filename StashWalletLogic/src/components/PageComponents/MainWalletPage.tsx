@@ -15,7 +15,12 @@ function MainWalletPage() {
   if (zkLogin.zkLoginAccounts.length === 0) return <NoWalletFound />;
 
   return (
-    <Stack justifyContent='flex-start' alignItems='flex-start' flexGrow={1}>
+    <Stack
+      justifyContent='flex-start'
+      alignItems='flex-start'
+      gap={2}
+      flexGrow={1}
+    >
       <AccountHeader />
       <YourAssets />
       <SendTokens />

@@ -91,6 +91,7 @@ declare global {
     hasSkippedSecondAccountCreation: boolean;
     selectedAccountAddress?: string;
     activeAccountAddress?: string;
+    activeAccountSuiCoins: number;
   }
 
   interface TransactionSignature {

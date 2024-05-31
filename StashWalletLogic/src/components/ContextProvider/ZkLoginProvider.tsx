@@ -1,5 +1,6 @@
 'use client';
 
+import { getFullnodeUrl, SuiClient } from '@mysten/sui.js/client';
 import { useEffect, useState } from 'react';
 
 import { prepareOauthConnection } from '@/lib/sui-related/zkLogin';
@@ -24,6 +25,7 @@ function ZkLoginProvider({ children }: { children: React.ReactNode }) {
     transactionState: 'idle',
     hasSkippedSecondAccountCreation: false,
     isInitializing: true,
+    activeAccountSuiCoins: 0,
   });
 
   useEffect(() => {
@@ -34,9 +36,36 @@ function ZkLoginProvider({ children }: { children: React.ReactNode }) {
       prepareOauthConnection();
       const storedAccounts = restoreFullAccounts();
       setZkLoginAccounts(storedAccounts);
+      setActiveAccount(storedAccounts[0]);
       setZkLoginState((prev) => ({ ...prev, isInitializing: false }));
     }
   }, []);
+
+  useEffect(() => {
+    if (activeAccount) {
+      const interval = setInterval(() => {
+        (async () => {
+          console.log('alive');
+          if (activeAccount) {
+            const client = new SuiClient({
+              url: getFullnodeUrl('devnet'),
+            });
+            const tokens = await client.getCoins({
+              owner: activeAccount.address,
+            });
+            console.log('🚀 ~ tokens:', tokens);
+            setZkLoginState((prev) => ({
+              ...prev,
+              activeAccountSuiCoins:
+                Number(tokens?.data?.[0]?.balance || 0) / 1000000000,
+            }));
+          }
+        })();
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [activeAccount]);
 
   return (
     <ActiveAccountContext.Provider
