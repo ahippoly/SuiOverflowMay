@@ -61,6 +61,7 @@ function AccountAddedPage({
       ...prev,
       activeAccountAddress: newMultisig.address,
     }));
+    zkLogin.setActiveAccount(newMultisig);
     saveActiveAccount(newMultisig);
     saveMultisigAccountsWithOldOnes([newMultisig]);
     setLoadingConfirmation(false);

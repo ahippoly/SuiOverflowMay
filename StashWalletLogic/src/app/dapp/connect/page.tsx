@@ -51,6 +51,9 @@ function ConnectWallet() {
       </Stack> */}
 
       <LoadingButton
+        sx={{
+          mt: 4,
+        }}
         variant='contained'
         loading={loading}
         onClick={onClickConnect}

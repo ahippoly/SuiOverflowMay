@@ -62,14 +62,16 @@ function WalletCardAdapter({
       clickCallback,
       IconComponent: hasStatus && (
         <Stack spacing={-2} direction='column-reverse'>
-          {wallet.components.map((component) => (
-            <CircledIcon key={component.address}>
-              <OauthProviderIcon
-                issuer={component.issuer}
-                color='primary.main'
-              />
-            </CircledIcon>
-          ))}
+          {wallet.components
+            .map((component) => (
+              <CircledIcon key={component.address}>
+                <OauthProviderIcon
+                  issuer={component.issuer}
+                  color='primary.main'
+                />
+              </CircledIcon>
+            ))
+            .reverse()}
         </Stack>
       ),
     });

@@ -16,6 +16,7 @@ import {
   parseJwt,
   prepareOauthConnection,
   restoreAccountsFromFetchedAccounts,
+  zkAccountToFetcchedAccount,
 } from './zkLogin';
 
 export const restoreFullAccounts = (): ZkLoginFullAccount[] => {
@@ -99,15 +100,7 @@ export const handleOauthResponse = async (): Promise<{
   if (storedAccounts.length === 0) {
     const fetchedAccounts = await signIn(token);
     const fetchedZkLoginAccounts: ZkLoginFetchedAccount[] =
-      fetchedAccounts.accounts.map((account) => ({
-        email: account.email,
-        issuer: account.issuer,
-        publicIdentifier: account.publicIdentifier,
-        salt: account.salt,
-        sub: account.sub,
-        type: 'zkPartial',
-        address: account.address,
-      }));
+      fetchedAccounts.accounts.map(zkAccountToFetcchedAccount);
     if (fetchedAccounts.accounts.length > 0) {
       // restore accounts
       const restoredAccounts = await restoreAccountsFromFetchedAccounts(

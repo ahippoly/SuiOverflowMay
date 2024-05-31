@@ -58,6 +58,20 @@ export const fetchedAccountToZkAccount = (
   salt: fetchedAccount.salt,
   publicIdentifier: fetchedAccount.publicIdentifier,
   address: fetchedAccount.address,
+  customName: fetchedAccount.customName,
+});
+
+export const zkAccountToFetcchedAccount = (
+  fetchedAccount: Omit<ZkAccount, 'userId'>
+): ZkLoginFetchedAccount => ({
+  sub: fetchedAccount.sub,
+  email: fetchedAccount.email,
+  issuer: fetchedAccount.issuer,
+  salt: fetchedAccount.salt,
+  publicIdentifier: fetchedAccount.publicIdentifier,
+  address: fetchedAccount.address,
+  customName: fetchedAccount.customName || '',
+  type: 'zkPartial',
 });
 
 export const parseJwt = (jwt: string): JwtPayload => {
@@ -89,11 +103,12 @@ export const fullAccountToFetchedAccount = (
     publicIdentifier: fullAccount.publicIdentifier,
     type: 'zkPartial',
     address: fullAccount.address,
+    customName: fullAccount.customName || '',
   };
 };
 
 export const sendTokens = async (
-  fromAccount: ZkLoginFullAccount,
+  fromAccount: WalletAccount,
   to: WalletAddress,
   amount: number
 ) => {
@@ -103,12 +118,13 @@ export const sendTokens = async (
   txb.transferObjects([coin], to);
   txb.setSender(fromAccount.address);
 
-  const transactionSignature = await createZkLoginSignature(fromAccount, txb);
+  const transactionSignature = await createSignature(fromAccount, txb);
 
-  return await executeTransaction(
-    transactionSignature.bytes,
-    transactionSignature.signature
-  );
+  return transactionSignature;
+  // return await executeTransaction(
+  //   transactionSignature.bytes,
+  //   transactionSignature.signature
+  // );
 };
 
 export const getOauthTypeFromJwt = (jwt: string): OauthTypes | null => {
@@ -132,22 +148,22 @@ export const getOauthTypeFromIssuer = (issuer: string): OauthTypes | null => {
   }
 };
 
-export const fetchZkProof = async (zkLoginInfo: ZkLoginAccount) => {
-  const jwt = zkLoginInfo.persistentInfo.jwt;
-  const userSalt = zkLoginInfo.persistentInfo.userSalt;
-  if (!jwt || !userSalt) return new Error('jwt or userSalt is missing');
-  const zkLoginAddress = jwtToAddress(jwt, userSalt);
+// export const fetchZkProof = async (zkLoginInfo: ZkLoginAccount) => {
+//   const jwt = zkLoginInfo.persistentInfo.jwt;
+//   const userSalt = zkLoginInfo.persistentInfo.userSalt;
+//   if (!jwt || !userSalt) return new Error('jwt or userSalt is missing');
+//   const zkLoginAddress = jwtToAddress(jwt, userSalt);
 
-  const zkProof = (await generateZkProof(
-    jwt,
-    zkLoginInfo.ephemeralInfo.ephemeralExtendedPublicKey,
-    userSalt,
-    zkLoginInfo.ephemeralInfo.randomness,
-    zkLoginInfo.persistentInfo.maxEpoch
-  )) as ZkProofSui;
+//   const zkProof = (await generateZkProof(
+//     jwt,
+//     zkLoginInfo.ephemeralInfo.ephemeralExtendedPublicKey,
+//     userSalt,
+//     zkLoginInfo.ephemeralInfo.randomness,
+//     zkLoginInfo.persistentInfo.maxEpoch
+//   )) as ZkProofSui;
 
-  return { zkProof, zkLoginAddress };
-};
+//   return { zkProof, zkLoginAddress };
+// };
 
 export const getZkLoginPublicIdentifier = (zkLoginInfo: ZkLoginAccount) => {
   if (!zkLoginInfo.persistentInfo.jwt) return null;
@@ -415,6 +431,25 @@ export const createMultiSigSignature = async (
   };
 };
 
+export const createSignature = async (
+  account: WalletAccount,
+  transactionBlock: TransactionBlock
+): Promise<TransactionSignature> => {
+  if (account.type === 'zkFull') {
+    return createZkLoginSignature(
+      account as ZkLoginFullAccount,
+      transactionBlock
+    );
+  } else if (account.type === 'multisig') {
+    return createMultiSigSignature(
+      account as MultiSigAccount,
+      transactionBlock
+    );
+  } else {
+    throw new Error('Account type not supported');
+  }
+};
+
 export const createZkLoginSignature = async (
   zkAccount: ZkLoginFullAccount,
   transactionBlock: TransactionBlock
@@ -429,7 +464,15 @@ export const createZkLoginSignature = async (
   });
 
   if (!zkAccount.zkProof) {
-    throw new Error('zkProof is missing');
+    const zkProof = await generateZkProof(
+      zkAccount.jwt,
+      zkAccount.ephemeralExtendedPublicKey,
+      zkAccount.userSalt,
+      zkAccount.randomness,
+      zkAccount.maxEpoch
+    );
+    zkAccount.zkProof = zkProof;
+    // throw new Error('zkProof is missing');
   }
 
   const zkLoginSignature: SerializedSignature = getZkLoginSignature({

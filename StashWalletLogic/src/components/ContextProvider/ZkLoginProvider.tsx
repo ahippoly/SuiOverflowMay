@@ -4,7 +4,10 @@ import { getFullnodeUrl, SuiClient } from '@mysten/sui.js/client';
 import { useEffect, useState } from 'react';
 
 import { prepareOauthConnection } from '@/lib/sui-related/zkLogin';
-import { restoreFullAccounts } from '@/lib/sui-related/zkLoginClient';
+import {
+  restoreActiveAccount,
+  restoreFullAccounts,
+} from '@/lib/sui-related/zkLoginClient';
 
 import {
   ActiveAccountContext,
@@ -36,7 +39,11 @@ function ZkLoginProvider({ children }: { children: React.ReactNode }) {
       prepareOauthConnection();
       const storedAccounts = restoreFullAccounts();
       setZkLoginAccounts(storedAccounts);
-      setActiveAccount(storedAccounts[0]);
+      const restoredActiveAccount = restoreActiveAccount();
+      if (restoredActiveAccount) setActiveAccount(restoredActiveAccount);
+      else if (storedAccounts.length > 0) {
+        setActiveAccount(storedAccounts[0]);
+      }
       setZkLoginState((prev) => ({ ...prev, isInitializing: false }));
     }
   }, []);

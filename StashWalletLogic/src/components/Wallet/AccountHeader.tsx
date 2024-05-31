@@ -18,7 +18,9 @@ function AccountHeader() {
         p: 2,
       }}
     >
-      <WalletCardAdapter walletSource={zkLogin.zkLoginAccounts[0]} />
+      <WalletCardAdapter
+        walletSource={zkLogin.activeAccount || zkLogin.zkLoginAccounts[0]}
+      />
       <Stack direction='row' gap={2}>
         <Button variant='text' color='primary'>
           Switch account
