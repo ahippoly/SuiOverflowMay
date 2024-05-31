@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useZkLogin } from '@/hooks/useZkLogin';
 import {
   buildMultisigSuggestions,
+  findZkAccountsFromMultisigComponents,
   fullAccountToFetchedAccount,
 } from '@/lib/sui-related/zkLogin';
 import {
@@ -53,7 +54,10 @@ function AccountAddedPage({
   const confirmAccountSelection = async (multisigAccount: MultiSigAccount) => {
     setLoadingConfirmation(true);
     const newMultisig = await createNewMultisigAccount(
-      multisigAccount.components
+      findZkAccountsFromMultisigComponents(
+        zkLogin.zkLoginAccounts,
+        multisigAccount.components
+      )
     );
 
     zkLogin.setActiveAccount(newMultisig);
@@ -109,7 +113,7 @@ function AccountAddedPage({
         }}
         variant='contained'
       >
-        Use suggested
+        Use default wallet
       </LoadingButton>
       <Button variant='outlined'>Skip</Button>
     </Stack>

@@ -27,7 +27,7 @@ import { getCurrentEpoch } from '@/lib/sui-related/utils';
 import { DEFAULT_MAX_EPOCH } from '@/constant/config';
 import { OauthTypes } from '@/enums/OauthTypes.enum';
 
-import { forAllCombinations } from '../utils';
+import { forAllCombinations, shrinkString } from '../utils';
 import {
   restoreAccountPreparation,
   saveAccountPreparation,
@@ -263,6 +263,21 @@ export const buildMultiSigPublicKey = async (
   return multiSigPublicKey;
 };
 
+export const findZkAccountsFromMultisigComponents = (
+  zkAccounts: ZkLoginFullAccount[],
+  components: ZkLoginFetchedAccount[]
+) => {
+  const foundAccounts: ZkLoginFullAccount[] = [];
+  for (const component of components) {
+    const foundAccount = zkAccounts.find(
+      (account) => account.publicIdentifier === component.publicIdentifier
+    );
+    if (foundAccount) foundAccounts.push(foundAccount);
+  }
+
+  return foundAccounts;
+};
+
 export const createMultiSigFromFetchedAccounts = async (
   zkAccounts: ZkLoginFetchedAccount[],
   threshold: number
@@ -281,8 +296,35 @@ export const createMultiSigFromFetchedAccounts = async (
   return newMultiSigAccount;
 };
 
+export const createMultiSigFromZkFullAccounts = async (
+  zkAccounts: ZkLoginFullAccount[],
+  threshold: number
+): Promise<MultiSigAccount> => {
+  const fetchedAccounts = zkAccounts.map(fullAccountToFetchedAccount);
+  const multisigPublicKey = await buildMultiSigPublicKey(
+    fetchedAccounts,
+    threshold
+  );
+
+  const newMultiSigAccount: MultiSigAccount = {
+    type: 'multisig',
+    address: multisigPublicKey.toSuiAddress(),
+    publicKey: multisigPublicKey.toBase64(),
+    components: fetchedAccounts,
+    activeAccounts: zkAccounts,
+    treshold: threshold,
+  };
+
+  return newMultiSigAccount;
+};
+
 export const generateRandomSuiAddress = () => {
-  return '0x' + Math.floor(Math.random() * 10 ** 12).toString(16);
+  const characters = '0123456789abcdef';
+  let string = '0x';
+  for (let i = 0; i < 64; i++) {
+    string += characters[Math.floor(Math.random() * characters.length)];
+  }
+  return shrinkString(string, 10, 5);
 };
 
 export const createMockedMultiSigFromFetchedAccounts = async (

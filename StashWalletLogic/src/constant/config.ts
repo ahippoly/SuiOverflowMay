@@ -6,4 +6,4 @@ export const siteConfig = {
   url: 'https://tsnext-tw.thcl.dev',
 };
 
-export const DEFAULT_MAX_EPOCH = 1000;
+export const DEFAULT_MAX_EPOCH = 20;

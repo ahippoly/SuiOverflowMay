@@ -1,6 +1,8 @@
 import { Stack, Typography } from '@mui/material';
 import Image from 'next/image';
 
+import { shrinkString } from '@/lib/utils';
+
 import suiIcon from '@/assets/suiIcon.png';
 
 import CircledIcon from '../General/CircledIcon';
@@ -29,6 +31,7 @@ function TransactionAssetTransfer({
     <Stack
       direction='row'
       alignItems='center'
+      justifyContent='center'
       gap={2}
       sx={{
         color: textColor,
@@ -45,7 +48,9 @@ function TransactionAssetTransfer({
           </CircledIcon>
         }
       />
-      <Typography variant='body2'>{addressConcerned}</Typography>
+      <Typography variant='body2' noWrap>
+        {shrinkString(addressConcerned, 10, 5)}
+      </Typography>
     </Stack>
   );
 }

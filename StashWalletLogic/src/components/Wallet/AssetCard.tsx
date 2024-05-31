@@ -16,7 +16,7 @@ function AssetCard({
   return (
     <Stack direction='row' gap={2}>
       {icon}
-      <Stack direction='row' alignItems='center' gap={1}>
+      <Stack direction='row' alignItems='center' gap={1} flexGrow={1}>
         <Typography>
           {isArithmeticOperation && amount > 0 ? '+' : ''}
           {amount}

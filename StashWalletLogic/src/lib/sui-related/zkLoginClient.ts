@@ -10,7 +10,7 @@ import {
 } from '@/backend/userAccountHandling';
 
 import {
-  createMultiSigFromFetchedAccounts,
+  createMultiSigFromZkFullAccounts,
   fullAccountToFetchedAccount,
   makeZkLoginFullAccountFromPreparation,
   parseJwt,
@@ -197,10 +197,11 @@ export const restoreAccountPreparation =
   };
 
 export const createNewMultisigAccount = async (
-  zkLoginAccounts: ZkLoginFetchedAccount[]
+  zkLoginAccounts: ZkLoginFullAccount[]
 ) => {
-  await addMultisig(zkLoginAccounts);
-  const multisigAccount = await createMultiSigFromFetchedAccounts(
+  const fetchedAccounts = zkLoginAccounts.map(fullAccountToFetchedAccount);
+  await addMultisig(fetchedAccounts);
+  const multisigAccount = await createMultiSigFromZkFullAccounts(
     zkLoginAccounts,
     1
   );

@@ -2,20 +2,28 @@ import { Paper, Stack, Typography } from '@mui/material';
 
 import TransactionAssetTransfer from './TransactionAssetTransfer';
 
-function TransactionData({ amount }: { amount: number }) {
+function TransactionData({
+  amount,
+  fromAddress,
+  toAddress,
+}: {
+  amount: number;
+  fromAddress: string;
+  toAddress: string;
+}) {
   return (
     <Paper sx={{ p: 4, width: '100%' }} elevation={0}>
       <Stack gap={2}>
         <Typography variant='h6'>Transaction will do</Typography>
         <TransactionAssetTransfer
           asset='SUI'
-          amount={-1}
-          addressConcerned='0x1234567890'
+          amount={-amount}
+          addressConcerned={fromAddress}
         />
         <TransactionAssetTransfer
           asset='SUI'
-          amount={1}
-          addressConcerned='0x1234567890'
+          amount={amount}
+          addressConcerned={toAddress}
         />
       </Stack>
     </Paper>

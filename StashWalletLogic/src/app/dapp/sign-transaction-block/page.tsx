@@ -65,7 +65,11 @@ function SignTransactionBlock() {
       <WalletCardAdapter
         walletSource={zkLogin.activeAccount || zkLogin.zkLoginAccounts[0]}
       />
-      <TransactionData amount={-1} />
+      <TransactionData
+        amount={1}
+        fromAddress={zkLogin.activeAccount?.address || ''}
+        toAddress='0x7afcf98c3ad845087cd9bca85ddf11c3aa13b8afe9f87ccff5595f66d6ec9422'
+      />
       {/* <Typography alignSelf='center' variant='h6'>
         Other wallers
       </Typography>
