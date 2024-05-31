@@ -12,6 +12,7 @@ model ZkAccount {
   sub              String
   publicIdentifier String     @unique
   address          String     @unique
+  customName       String?
   email            String
   issuer           String
   salt             String     @id @unique
@@ -23,6 +24,7 @@ model ZkAccount {
 model Multisig {
   id         String      @id @default(cuid())
   components ZkAccount[]
+  customName String?
   userId     String
   user       User        @relation(fields: [userId], references: [id])
 }

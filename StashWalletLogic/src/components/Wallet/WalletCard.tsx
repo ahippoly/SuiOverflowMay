@@ -28,6 +28,10 @@ function WalletCard({
         if (selectable === false) return;
         clickCallback && clickCallback(walletAccount);
         zkLogin.setSelectedAccount(walletAccount);
+        zkLogin.setUseZkLoginState((prev) => ({
+          ...prev,
+          selectedAccountAddress: walletAccount.address,
+        }));
       }}
       elevation={0}
       sx={{
@@ -39,6 +43,12 @@ function WalletCard({
         borderRadius: 4,
         width: '100%',
         cursor: `${selectable ? 'pointer' : 'unset'}`,
+        border: (theme) =>
+          selectable &&
+          zkLogin.useZkLoginState.selectedAccountAddress ===
+            walletAccount.address
+            ? `1px solid ${theme.palette.grey[300]}`
+            : '',
       }}
     >
       {statusComponent}

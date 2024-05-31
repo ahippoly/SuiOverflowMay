@@ -12,15 +12,19 @@ function WalletCardAdapter({
   walletSource,
   isSelectable,
   clickCallback,
+  hasStatus,
 }: {
   walletSource: WalletAccount;
   isSelectable?: boolean;
   clickCallback?: (walletAccount: WalletAccount) => void;
+  hasStatus?: boolean;
 }) {
+  if (hasStatus === undefined) hasStatus = true;
+
   if (walletSource.type === 'zkFull') {
     const wallet = walletSource as ZkLoginFullAccount;
     return WalletCard({
-      statusComponent: <GppMaybeIcon />,
+      statusComponent: hasStatus && <GppMaybeIcon />,
       accountName: wallet.email,
       walletAdress: wallet.address,
       IconComponent: <OauthProviderIcon issuer={wallet.issuer} />,
@@ -33,7 +37,7 @@ function WalletCardAdapter({
   if (walletSource.type === 'zkPartial') {
     const wallet = walletSource as ZkLoginFetchedAccount;
     return WalletCard({
-      statusComponent: <GppMaybeIcon />,
+      statusComponent: hasStatus && <GppMaybeIcon />,
       accountName: wallet.email,
       walletAdress: wallet.address,
       IconComponent: <OauthProviderIcon issuer={wallet.issuer} />,
@@ -56,7 +60,7 @@ function WalletCardAdapter({
       selectable: isSelectable,
       walletAccount: wallet,
       clickCallback,
-      IconComponent: (
+      IconComponent: hasStatus && (
         <Stack spacing={-2} direction='column-reverse'>
           {wallet.components.map((component) => (
             <CircledIcon key={component.address}>

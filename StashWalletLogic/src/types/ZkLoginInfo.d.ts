@@ -55,6 +55,8 @@ declare global {
   type WalletType = 'multisig' | 'zkFull' | 'zkPartial' | 'privateKey';
   interface WalletAccount {
     type: WalletType;
+    address: string;
+    customName?: string;
   }
 
   type loginStatus = 'restoreAccounts' | 'registerNewAccount' | 'addAccount';
@@ -63,6 +65,7 @@ declare global {
     WalletAccount & { type: 'zkPartial' };
   interface ZkLoginFullAccount extends WalletAccount {
     type: 'zkFull';
+    customName?: string;
     issuer: string;
     userSalt: string;
     maxEpoch: string;
@@ -99,6 +102,7 @@ declare global {
 
   interface MultiSigAccount extends WalletAccount {
     type: 'multisig';
+    customName?: string;
     address: string;
     publicKey: string;
     components: ZkLoginFetchedAccount[];

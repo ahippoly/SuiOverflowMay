@@ -110,7 +110,7 @@ export const addMultisigToUser = async (
     data: {
       userId: user.id,
       components: {
-        create: multisigComponents,
+        connect: multisigComponents,
       },
     },
   });

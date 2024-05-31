@@ -2,6 +2,8 @@
 
 import { Multisig, ZkAccount } from '@prisma/client';
 
+import { fetchedAccountToZkAccount } from '@/lib/sui-related/zkLogin';
+
 import {
   addAccountToUser,
   addMultisigToUser,
@@ -61,10 +63,13 @@ export const addMultisig = async (
   const user = potentialUsers[0];
 
   // Create multisig
-  const multisigComponents = multisigAccounts.map((a) => ({
-    userId: user.id,
-    ...a,
-  }));
+  const multisigComponents = multisigAccounts
+    .map(fetchedAccountToZkAccount)
+    .map((a) => ({
+      ...a,
+      userId: user.id,
+    }));
+  console.log('🚀 ~ multisigComponents:', multisigComponents);
   await addMultisigToUser(user, multisigComponents);
   return true;
 };

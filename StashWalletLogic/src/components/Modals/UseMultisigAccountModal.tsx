@@ -1,4 +1,5 @@
-import { Button, Dialog, Stack, Typography } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
+import { Dialog, Stack, Typography } from '@mui/material';
 
 import WalletCardAdapter from '../Wallet/WalletCardAdapter';
 
@@ -6,10 +7,14 @@ function UseMultisigAccountModal({
   multisigAccount,
   open,
   onClose,
+  onConfirm,
+  loadingConfirmation,
 }: {
   multisigAccount: MultiSigAccount;
   open: boolean;
   onClose: () => void;
+  onConfirm: (multisigAccount: MultiSigAccount) => void;
+  loadingConfirmation: boolean;
 }) {
   return (
     <Dialog open={open} onClose={onClose}>
@@ -21,10 +26,19 @@ function UseMultisigAccountModal({
               key={component.address}
               walletSource={component}
               isSelectable={false}
+              hasStatus={false}
             />
           ))}
         </Stack>
-        <Button variant='contained'>Use Safe wallet</Button>
+        <LoadingButton
+          onClick={() => {
+            onConfirm(multisigAccount);
+          }}
+          variant='contained'
+          loading={loadingConfirmation}
+        >
+          Use Safe wallet
+        </LoadingButton>
       </Stack>
     </Dialog>
   );

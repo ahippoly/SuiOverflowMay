@@ -4,11 +4,13 @@ import queryString from 'query-string';
 
 import {
   addAccount,
+  addMultisig,
   registerNewUser,
   signIn,
 } from '@/backend/userAccountHandling';
 
 import {
+  createMultiSigFromFetchedAccounts,
   fullAccountToFetchedAccount,
   makeZkLoginFullAccountFromPreparation,
   parseJwt,
@@ -26,6 +28,38 @@ export const restoreFetchedAccounts = (): ZkLoginFetchedAccount[] => {
   const storedAccounts = window.localStorage.getItem('zkLoginFetchedAccounts');
   if (!storedAccounts) return [];
   return JSON.parse(storedAccounts);
+};
+
+export const saveMultisigAccountsWithOldOnes = (
+  multisigAccounts: MultiSigAccount[]
+) => {
+  const storedAccounts = restoreMultisigAccounts();
+  for (const newAccount of multisigAccounts) {
+    const existingAccount = storedAccounts.find(
+      (account) => account.address === newAccount.address
+    );
+    if (!existingAccount) storedAccounts.push(newAccount);
+  }
+  window.localStorage.setItem(
+    'zkLoginMultisigAccounts',
+    JSON.stringify(storedAccounts)
+  );
+};
+
+export const restoreMultisigAccounts = (): MultiSigAccount[] => {
+  const storedAccounts = window.localStorage.getItem('zkLoginMultisigAccounts');
+  if (!storedAccounts) return [];
+  return JSON.parse(storedAccounts);
+};
+
+export const saveActiveAccount = (account: WalletAccount) => {
+  window.localStorage.setItem('zkLoginActiveAccount', JSON.stringify(account));
+};
+
+export const restoreActiveAccount = (): WalletAccount | null => {
+  const storedAccount = window.localStorage.getItem('zkLoginActiveAccount');
+  if (!storedAccount) return null;
+  return JSON.parse(storedAccount);
 };
 
 export const saveFetchedAccountsWithOldsOnes = (
@@ -82,7 +116,7 @@ export const handleOauthResponse = async (): Promise<{
         fetchedZkLoginAccounts
       );
       saveFullAccountsWithOldsOnes(restoredAccounts);
-      resetAccountPreparation();
+      refreshAccountPreparation();
       return {
         status: 'restoreAccounts',
         accounts: restoredAccounts,
@@ -95,7 +129,7 @@ export const handleOauthResponse = async (): Promise<{
       // register new account
       await registerNewUser(token, fullAccountToFetchedAccount(newAccount));
       saveFullAccountsWithOldsOnes([newAccount]);
-      resetAccountPreparation();
+      refreshAccountPreparation();
       return {
         status: 'registerNewAccount',
         accounts: [newAccount],
@@ -168,6 +202,17 @@ export const restoreAccountPreparation =
     if (!storedAccountPreparation) return null;
     return JSON.parse(storedAccountPreparation);
   };
+
+export const createNewMultisigAccount = async (
+  zkLoginAccounts: ZkLoginFetchedAccount[]
+) => {
+  await addMultisig(zkLoginAccounts);
+  const multisigAccount = await createMultiSigFromFetchedAccounts(
+    zkLoginAccounts,
+    1
+  );
+  return multisigAccount;
+};
 
 export const saveAccountPreparation = (
   zkLoginInfo: ZkLoginAccountPreparation
