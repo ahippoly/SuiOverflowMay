@@ -1,8 +1,13 @@
-import { Container, Paper } from '@mui/material';
-import useMediaQuery from '@mui/material/useMediaQuery';
-function MainContainer({ children }: { children: React.ReactNode }) {
-  const isMobile = !useMediaQuery((theme) => theme.breakpoints.up('sm'));
+'use client';
 
+import { Container, Paper } from '@mui/material';
+function MainContainer({
+  children,
+  isMobile,
+}: {
+  children: React.ReactNode;
+  isMobile?: boolean;
+}) {
   if (isMobile) {
     return (
       <Paper
@@ -14,7 +19,7 @@ function MainContainer({ children }: { children: React.ReactNode }) {
           backgroundColor: 'background.default',
         }}
       >
-        <>{children}</>
+        {children}
       </Paper>
     );
   }
@@ -30,7 +35,7 @@ function MainContainer({ children }: { children: React.ReactNode }) {
           backgroundColor: 'background.default',
         }}
       >
-        <>{children}</>
+        {children}
       </Paper>
     </Container>
   );

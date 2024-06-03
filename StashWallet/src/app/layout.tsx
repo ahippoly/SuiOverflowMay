@@ -67,6 +67,7 @@ export default function RootLayout({
 }) {
   const prefersDarkMode =
     useMediaQuery('(prefers-color-scheme: dark)') && false;
+  const isMobile = useMediaQuery('(max-width:600px)');
 
   const theme = useMemo(
     () =>
@@ -127,7 +128,7 @@ export default function RootLayout({
                   'linear-gradient(243deg, #a4e2ff 0%, #ffffff 66%, #ffffff 68%, #AEF7D2 91%)',
               }}
             >
-              <MainContainer>
+              <MainContainer isMobile={isMobile}>
                 <Stack
                   direction='column'
                   spacing={2}
