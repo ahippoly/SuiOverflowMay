@@ -6,6 +6,6 @@ Being a Web wallet, your users can onboard on your dApp with the user journey th
 
 Try it on https://www.sui-safe.com/ or run it locally.
 
-In order to run it locally, go to StashWalletLogic, setup your credential as in .env.example and run pnpm install.
+In order to run it locally, go to StashWallet, setup your credential as in .env.example and run pnpm install.
 
-A dApp to test tha product is in the folder DappTest2/my-first-sui-dapp
+A dApp to test tha product is in the folder DappTest

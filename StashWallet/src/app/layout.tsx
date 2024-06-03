@@ -1,11 +1,22 @@
-"use client";
+'use client';
 
-import { createTheme, CssBaseline, ThemeProvider, useMediaQuery } from '@mui/material';
+import {
+  Box,
+  createTheme,
+  CssBaseline,
+  Stack,
+  ThemeProvider,
+  useMediaQuery,
+} from '@mui/material';
 import { useMemo } from 'react';
 
 import '@/styles/globals.css';
 // !STARTERCONF This is for demo purposes, remove @/styles/colors.css import immediately
 import '@/styles/colors.css';
+
+import ZkLoginProvider from '@/components/ContextProvider/ZkLoginProvider';
+import Header from '@/components/General/Header';
+import MainContainer from '@/components/MainContainer';
 
 // !STARTERCONF Change these default meta
 // !STARTERCONF Look at @/constant/config to change them
@@ -49,31 +60,87 @@ import '@/styles/colors.css';
 //   // ],
 // };
 
-
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)') && false;
+  const prefersDarkMode =
+    useMediaQuery('(prefers-color-scheme: dark)') && false;
 
   const theme = useMemo(
     () =>
       createTheme({
         palette: {
           mode: prefersDarkMode ? 'dark' : 'light',
+          primary: {
+            main: '#01050e',
+          },
+          background: {
+            default: '#ffffff',
+            paper: '#f5f5f5',
+          },
+        },
+        components: {
+          // Name of the component
+          MuiPaper: {
+            styleOverrides: {
+              // Name of the slot
+              root: {
+                // Some CSS
+                borderRadius: '10px',
+              },
+            },
+          },
+          MuiButton: {
+            styleOverrides: {
+              root: {},
+            },
+          },
+          MuiStack: {
+            styleOverrides: {
+              root: {
+                minWidth: 0,
+              },
+            },
+          },
         },
       }),
-    [prefersDarkMode],
+    [prefersDarkMode]
   );
-
 
   return (
     <html>
       <body>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-            {children}
+          <ZkLoginProvider>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100%',
+                backgroundColor: '#a4e2ff',
+                backgroundImage:
+                  'linear-gradient(243deg, #a4e2ff 0%, #ffffff 66%, #ffffff 68%, #AEF7D2 91%)',
+              }}
+            >
+              <MainContainer>
+                <Stack
+                  direction='column'
+                  spacing={2}
+                  sx={{
+                    height: '100%',
+                  }}
+                >
+                  <Header />
+                  {children}
+                </Stack>
+              </MainContainer>
+            </Box>
+          </ZkLoginProvider>
         </ThemeProvider>
       </body>
     </html>
