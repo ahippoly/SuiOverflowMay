@@ -22,9 +22,12 @@ function AccountHeader() {
         walletSource={zkLogin.activeAccount || zkLogin.zkLoginAccounts[0]}
       />
       <Stack direction='row' gap={2}>
-        <Button variant='text' color='primary'>
-          Switch account
-        </Button>
+        <Link href='/app/switch-account'>
+          <Button variant='text' color='primary'>
+            Switch account
+          </Button>
+        </Link>
+
         <Link href='/app/add-account'>
           <Button variant='text' color='primary'>
             Add account

@@ -89,8 +89,6 @@ declare global {
     transactionState: TransactionState;
     isInitializing: boolean;
     hasSkippedSecondAccountCreation: boolean;
-    selectedAccountAddress?: string;
-    activeAccountAddress?: string;
     activeAccountSuiCoins: number;
   }
 

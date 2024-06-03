@@ -14,12 +14,22 @@ import {
   SelectedZkAccountContext,
 } from '@/contexts/selectedZkAccountContext';
 import { UseZkLoginStateContext } from '@/contexts/useZkLoginStateContext';
-import { ZkLoginAccountsContext } from '@/contexts/zkLoginInfoContext';
+import {
+  MultisigAccountsContext,
+  PartialAccountsContext,
+  ZkLoginAccountsContext,
+} from '@/contexts/zkLoginInfoContext';
 
 function ZkLoginProvider({ children }: { children: React.ReactNode }) {
   const [zkLoginAccounts, setZkLoginAccounts] = useState<ZkLoginFullAccount[]>(
     []
   );
+  const [multisigAccounts, setMultisigAccounts] = useState<MultiSigAccount[]>(
+    []
+  );
+  const [partialAccounts, setPartialAccounts] = useState<
+    ZkLoginFetchedAccount[]
+  >([]);
   const [activeAccount, setActiveAccount] = useState<WalletAccount>();
   const [selectedAccount, setSelectedAccount] = useState<WalletAccount>();
   const [zkLoginState, setZkLoginState] = useState<UseZkLoginState>({
@@ -93,14 +103,28 @@ function ZkLoginProvider({ children }: { children: React.ReactNode }) {
             setZkLoginAccounts: setZkLoginAccounts,
           }}
         >
-          <UseZkLoginStateContext.Provider
+          <MultisigAccountsContext.Provider
             value={{
-              useZkLoginState: zkLoginState,
-              setUseZkLoginState: setZkLoginState,
+              multisigAccounts: multisigAccounts,
+              setMultisigAccounts: setMultisigAccounts,
             }}
           >
-            {children}
-          </UseZkLoginStateContext.Provider>
+            <PartialAccountsContext.Provider
+              value={{
+                partialAccounts: partialAccounts,
+                setPartialAccounts: setPartialAccounts,
+              }}
+            >
+              <UseZkLoginStateContext.Provider
+                value={{
+                  useZkLoginState: zkLoginState,
+                  setUseZkLoginState: setZkLoginState,
+                }}
+              >
+                {children}
+              </UseZkLoginStateContext.Provider>
+            </PartialAccountsContext.Provider>
+          </MultisigAccountsContext.Provider>
         </ZkLoginAccountsContext.Provider>
       </SelectedZkAccountContext.Provider>
     </ActiveAccountContext.Provider>

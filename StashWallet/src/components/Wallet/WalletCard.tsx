@@ -12,6 +12,7 @@ function WalletCard({
   selectable,
   walletAccount,
   clickCallback,
+  endIcons,
 }: {
   statusComponent?: React.ReactNode;
   accountName: string;
@@ -20,6 +21,7 @@ function WalletCard({
   selectable?: boolean;
   walletAccount: WalletAccount;
   clickCallback?: (walletAccount: WalletAccount) => void;
+  endIcons?: React.ReactNode;
 }) {
   const zkLogin = useZkLogin();
   return (
@@ -28,10 +30,6 @@ function WalletCard({
         if (selectable === false) return;
         clickCallback && clickCallback(walletAccount);
         zkLogin.setSelectedAccount(walletAccount);
-        zkLogin.setUseZkLoginState((prev) => ({
-          ...prev,
-          selectedAccountAddress: walletAccount.address,
-        }));
       }}
       elevation={0}
       sx={{
@@ -43,11 +41,10 @@ function WalletCard({
         borderRadius: 4,
         width: '100%',
         cursor: `${selectable ? 'pointer' : 'unset'}`,
-        border: (theme) =>
+        outline: (theme) =>
           selectable &&
-          zkLogin.useZkLoginState.selectedAccountAddress ===
-            walletAccount.address
-            ? `1px solid ${theme.palette.grey[300]}`
+          zkLogin.selectedAccount?.address === walletAccount.address
+            ? `1px solid ${theme.palette.primary.main}`
             : '',
       }}
     >
@@ -61,6 +58,7 @@ function WalletCard({
           {shrinkString(walletAdress, 10, 5)}
         </Typography>
       </Stack>
+      {endIcons}
     </Card>
   );
 }

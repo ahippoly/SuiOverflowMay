@@ -1,18 +1,29 @@
 'use client';
 
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 
 import {
   ActiveAccountContext,
   SelectedZkAccountContext,
 } from '@/contexts/selectedZkAccountContext';
 import { UseZkLoginStateContext } from '@/contexts/useZkLoginStateContext';
-import { ZkLoginAccountsContext } from '@/contexts/zkLoginInfoContext';
+import {
+  MultisigAccountsContext,
+  PartialAccountsContext,
+  ZkLoginAccountsContext,
+} from '@/contexts/zkLoginInfoContext';
 // export const completeZkLoginFlowAfterOauth = async () => {};
 
 export const useZkLogin = () => {
   const { zkLoginAccounts, setZkLoginAccounts } = useContext(
     ZkLoginAccountsContext
+  );
+
+  const { multisigAccounts, setMultisigAccounts } = useContext(
+    MultisigAccountsContext
+  );
+  const { partialAccounts, setPartialAccounts } = useContext(
+    PartialAccountsContext
   );
 
   const { activeAccount, setActiveAccount } = useContext(ActiveAccountContext);
@@ -23,6 +34,10 @@ export const useZkLogin = () => {
   const { useZkLoginState, setUseZkLoginState } = useContext(
     UseZkLoginStateContext
   );
+
+  const walletAccounts = useMemo(() => {
+    return [...multisigAccounts, ...zkLoginAccounts, ...partialAccounts];
+  }, [zkLoginAccounts, multisigAccounts, partialAccounts]);
 
   const removeAccount = (account: WalletAccount) => {
     if (account.type == 'zkFull') {
@@ -54,5 +69,10 @@ export const useZkLogin = () => {
     useZkLoginState,
     setUseZkLoginState,
     skipSecondAccountCreation,
+    multisigAccounts,
+    setMultisigAccounts,
+    partialAccounts,
+    setPartialAccounts,
+    walletAccounts,
   };
 };

@@ -13,11 +13,13 @@ function WalletCardAdapter({
   isSelectable,
   clickCallback,
   hasStatus,
+  endIcons,
 }: {
   walletSource: WalletAccount;
   isSelectable?: boolean;
   clickCallback?: (walletAccount: WalletAccount) => void;
   hasStatus?: boolean;
+  endIcons?: React.ReactNode;
 }) {
   if (hasStatus === undefined) hasStatus = true;
 
@@ -31,6 +33,7 @@ function WalletCardAdapter({
       selectable: isSelectable,
       walletAccount: wallet,
       clickCallback,
+      endIcons,
     });
   }
 
@@ -44,6 +47,7 @@ function WalletCardAdapter({
       selectable: isSelectable,
       walletAccount: wallet,
       clickCallback,
+      endIcons,
     });
   }
 
@@ -74,6 +78,7 @@ function WalletCardAdapter({
             .reverse()}
         </Stack>
       ),
+      endIcons,
     });
   }
 }
